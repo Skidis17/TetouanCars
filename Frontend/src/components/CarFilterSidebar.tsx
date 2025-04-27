@@ -9,7 +9,7 @@ interface CarFilterSidebarProps {
 }
 
 const CarFilterSidebar = ({ onFilterChange }: CarFilterSidebarProps) => {
-  const [priceRange, setPriceRange] = useState([0, 200]);
+  const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedFuelTypes, setSelectedFuelTypes] = useState<string[]>([]);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -81,16 +81,16 @@ const CarFilterSidebar = ({ onFilterChange }: CarFilterSidebarProps) => {
         <h3 className="text-lg font-semibold mb-4">Prix par jour</h3>
         <div className="px-2">
           <Slider 
-            defaultValue={[0, 200]} 
-            max={300} 
+            defaultValue={[0, 5000]} 
+            max={5000} 
             step={10} 
             value={priceRange}
             onValueChange={handlePriceChange}
             className="mb-4"
           />
           <div className="flex justify-between text-sm text-gray-600">
-            <span>{priceRange[0]}€</span>
-            <span>{priceRange[1]}€</span>
+            <span>{priceRange[0]}Dh</span>
+            <span>{priceRange[1]}Dh</span>
           </div>
         </div>
       </div>
@@ -117,8 +117,8 @@ const CarFilterSidebar = ({ onFilterChange }: CarFilterSidebarProps) => {
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="type-electric" 
-              checked={selectedFuelTypes.includes("electric")}
-              onCheckedChange={() => handleFuelTypeChange("electric")}
+              checked={selectedFuelTypes.includes("Electrique")}
+              onCheckedChange={() => handleFuelTypeChange("Electrique")}
             />
             <Battery className="h-4 w-4 text-blue-500" />
             <Label htmlFor="type-electric">Électrique</Label>
@@ -126,8 +126,8 @@ const CarFilterSidebar = ({ onFilterChange }: CarFilterSidebarProps) => {
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="type-hybrid" 
-              checked={selectedFuelTypes.includes("hybrid")}
-              onCheckedChange={() => handleFuelTypeChange("hybrid")}
+              checked={selectedFuelTypes.includes("Hybride")}
+              onCheckedChange={() => handleFuelTypeChange("Hybride")}
             />
             <Car className="h-4 w-4 text-green-500" />
             <Label htmlFor="type-hybrid">Hybride</Label>
@@ -135,8 +135,8 @@ const CarFilterSidebar = ({ onFilterChange }: CarFilterSidebarProps) => {
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="type-essence" 
-              checked={selectedFuelTypes.includes("essence")}
-              onCheckedChange={() => handleFuelTypeChange("essence")}
+              checked={selectedFuelTypes.includes("Essence")}
+              onCheckedChange={() => handleFuelTypeChange("Essence")}
             />
             <Fuel className="h-4 w-4 text-orange-500" />
             <Label htmlFor="type-essence">Essence</Label>

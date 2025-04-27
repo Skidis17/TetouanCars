@@ -9,12 +9,12 @@ interface CarSpecificationProps {
 
 const CarSpecification = ({ car }: CarSpecificationProps) => {
   const getFuelTypeIcon = () => {
-    switch (car.fuelType) {
-      case "electric":
+    switch (car.type_carburant) {
+      case "Electrique":
         return <Battery className="h-5 w-5 text-blue-500" />;
-      case "hybrid":
+      case "Hybride":
         return <CarIcon className="h-5 w-5 text-green-500" />;
-      case "essence":
+      case "Essence":
         return <Fuel className="h-5 w-5 text-orange-500" />;
       default:
         return <Fuel className="h-5 w-5" />;
@@ -22,12 +22,12 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
   };
 
   const getFuelTypeName = () => {
-    switch (car.fuelType) {
-      case "electric":
+    switch (car.type_carburant) {
+      case "Electrique":
         return "Électrique";
-      case "hybrid":
+      case "Hybride":
         return "Hybride";
-      case "essence":
+      case "Essence":
         return "Essence";
       default:
         return "Inconnu";
@@ -67,11 +67,7 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
           }>
             {car.status === "disponible" ? "Disponible" : "Occupée"}
           </Badge>
-          {car.status === "occupee" && car.occupancyDates && (
-            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
-              Du {new Date(car.occupancyDates.from).toLocaleDateString()} au {new Date(car.occupancyDates.to).toLocaleDateString()}
-            </Badge>
-          )}
+          
         </div>
       </div>
 
@@ -83,7 +79,7 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
             <Info className="h-6 w-6 text-carRental-primary" />
           </div>
           <span className="text-sm text-gray-500">Immatriculation</span>
-          <span className="font-medium">{car.immatricule}</span>
+          <span className="font-medium">{car.immatriculation}</span>
         </div>
         
         <div className="flex flex-col items-center text-center space-y-2">
@@ -115,7 +111,7 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
             <Users className="h-6 w-6 text-carRental-primary" />
           </div>
           <span className="text-sm text-gray-500">Nombre de places</span>
-          <span className="font-medium">{car.nombrePlaces}</span>
+          <span className="font-medium">{car.nombre_places}</span>
         </div>
 
         <div className="flex flex-col items-center text-center space-y-2">
@@ -123,7 +119,7 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
             <Calendar className="h-6 w-6 text-carRental-primary" />
           </div>
           <span className="text-sm text-gray-500">Date d'ajout</span>
-          <span className="font-medium">{new Date(car.dateAjout).toLocaleDateString()}</span>
+          <span className="font-medium">{new Date(car.date_ajout).toLocaleDateString()}</span>
         </div>
       </div>
 

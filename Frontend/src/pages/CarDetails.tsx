@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Car, mockCars, mockManagers } from "@/types/car";
+import axios from "axios";
+import { Car, mockManagers } from "@/types/car";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CarSpecification from "@/components/CarSpecification";
@@ -13,58 +13,73 @@ import { toast } from "sonner";
 
 const CarDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const [car, setCar] = useState<Car | null>(null);
+  const [cars, setCars] = useState<Car[]>([]);
+  const [currentCar, setCurrentCar] = useState<Car | null>(null);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      const foundCar = mockCars.find(c => c.id === id);
-      setCar(foundCar || null);
-      setLoading(false);
-    }, 500);
+    const fetchAllCars = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://localhost:5000/");
+        
+        if (!response.data || !Array.isArray(response.data)) {
+          throw new Error("Invalid data format received from server");
+        }
+
+        setCars(response.data);
+        
+        // Find the specific car by ID hia li3t9tna fr fr 
+        const foundCar = response.data.find(car => car._id === id);
+        if (foundCar) {
+          setCurrentCar(foundCar);
+        } else {
+          setError("Véhicule non trouvé");
+        }
+      } catch (err) {
+        setError(err.response?.data?.error || "Erreur lors du chargement des véhicules");
+        toast.error("Erreur de chargement des données");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllCars();
   }, [id]);
 
-  const handleReservationCheck = (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleReservationCheck = (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    if (!startDate || !endDate) {
-      toast.error("Veuillez sélectionner les dates de réservation");
-      return;
-    }
+  //   // if (!startDate || !endDate) {
+  //   //   toast.error("Veuillez sélectionner les dates de réservation");
+  //   //   return;
+  //   // }
     
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+  //   // const start = new Date(startDate);
+  //   // const end = new Date(endDate);
     
-    if (start >= end) {
-      toast.error("La date de fin doit être postérieure à la date de début");
-      return;
-    }
-    
-    if (car?.status === "occupee") {
-      if (car.occupancyDates) {
-        const occupiedFrom = new Date(car.occupancyDates.from);
-        const occupiedTo = new Date(car.occupancyDates.to);
-        toast.error(`Ce véhicule est occupé du ${occupiedFrom.toLocaleDateString()} au ${occupiedTo.toLocaleDateString()}`);
-      } else {
-        toast.error("Ce véhicule n'est pas disponible pour le moment");
-      }
-      return;
-    }
-    
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const totalPrice = car ? car.prixJour * diffDays : 0;
-    
-    toast.success(`Réservation possible pour ${diffDays} jours. Coût total estimé: ${totalPrice}€`);
-  };
+  //   // if (start >= end) {
+  //   //   toast.error("La date de fin doit être postérieure à la date de début");
+  //   //   return;
+  //   // }
 
-  // Get a manager based on car ID - alternating between the two managers
+  //   // if (currentCar?.status === "occupee") {
+  //   //   toast.error("Ce véhicule n'est pas disponible pour le moment");
+  //   //   return;
+  //   // }
+    
+  //   // const diffTime = Math.abs(end.getTime() - start.getTime());
+  //   // const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  //   // const totalPrice = currentCar ? currentCar.prix_journalier * diffDays : 0;
+    
+  //   // toast.success(`Réservation possible pour ${diffDays} jours. Coût total estimé: ${totalPrice}€`);
+  // };
+
   const getManager = (carId: string) => {
-    const managerId = parseInt(carId) % 2;
+    const managerId = parseInt(carId) % mockManagers.length;
     return mockManagers[managerId];
   };
 
@@ -83,7 +98,7 @@ const CarDetails = () => {
     );
   }
 
-  if (!car) {
+  if (error || !currentCar) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -104,7 +119,7 @@ const CarDetails = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-grow pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="mb-8">
@@ -118,86 +133,19 @@ const CarDetails = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl overflow-hidden shadow-sm mb-8">
                 <img 
-                  src={car.image} 
-                  alt={`${car.marque} ${car.model}`} 
-                  className="w-full h-80 object-cover"
+                  src={currentCar.image} 
+                  alt={`${currentCar.marque} ${currentCar.model}`} 
+                  className="w-full h-90 object-cover"
                 />
               </div>
               
-              <CarSpecification car={car} />
+              <CarSpecification car={currentCar} />
               
-              <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-xl font-semibold mb-6">Vérifier la disponibilité</h3>
-                {car.status === "occupee" && car.occupancyDates && (
-                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-                    <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-red-700">Véhicule occupé</p>
-                      <p className="text-sm text-red-600">
-                        Ce véhicule est déjà réservé du {new Date(car.occupancyDates.from).toLocaleDateString()} 
-                        au {new Date(car.occupancyDates.to).toLocaleDateString()}.
-                      </p>
-                    </div>
-                  </div>
-                )}
-                <form onSubmit={handleReservationCheck} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Date de début</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <input
-                          type="date"
-                          className="pl-10 w-full rounded-md border border-gray-300 py-3 px-4 focus:border-carRental-primary focus:ring-2 focus:ring-carRental-primary/20 focus:outline-none"
-                          value={startDate}
-                          onChange={(e) => setStartDate(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
-                          required
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Date de fin</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                        <input
-                          type="date"
-                          className="pl-10 w-full rounded-md border border-gray-300 py-3 px-4 focus:border-carRental-primary focus:ring-2 focus:ring-carRental-primary/20 focus:outline-none"
-                          value={endDate}
-                          onChange={(e) => setEndDate(e.target.value)}
-                          min={startDate || new Date().toISOString().split('T')[0]}
-                          required
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    type="submit"
-                    className="w-full bg-carRental-primary hover:bg-carRental-secondary"
-                  >
-                    Vérifier la disponibilité
-                  </Button>
-                </form>
-                
-                <Separator className="my-6" />
-                
-                <div className="bg-carRental-light p-4 rounded-lg">
-                  <h4 className="font-semibold mb-2">Informations de prix</h4>
-                  <div className="flex justify-between mb-2">
-                    <span>Prix journalier:</span>
-                    <span className="font-semibold">{car.prixJour}€ / jour</span>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    * Des frais supplémentaires peuvent s'appliquer selon la durée et les options choisies.
-                  </p>
-                </div>
-              </div>
+              {/*  */}
             </div>
             
             <div className="lg:col-span-1">
-              <ReservationContact manager={getManager(car.id)} carId={car.id} />
+              <ReservationContact manager={getManager(currentCar._id)} carId={currentCar._id} />
               
               <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-xl font-semibold mb-4">Informations importantes</h3>
@@ -208,7 +156,7 @@ const CarDetails = () => {
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="h-2 w-2 rounded-full bg-carRental-primary mt-2"></span>
-                    <span className="text-gray-700">Vous devez présenter un permis de conduire {car.permitType} valide</span>
+                    <span className="text-gray-700">Vous devez présenter un permis de conduire {currentCar.permitType} valide</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="h-2 w-2 rounded-full bg-carRental-primary mt-2"></span>
@@ -227,7 +175,7 @@ const CarDetails = () => {
                   Notre équipe est disponible pour répondre à toutes vos questions concernant la location de ce véhicule.
                 </p>
                 <Button 
-                  onClick={() => window.location.href = `tel:${getManager(car.id).phoneNumber}`}
+                  onClick={() => window.location.href = `tel:${getManager(currentCar._id).phoneNumber}`}
                   variant="outline" 
                   className="w-full border-carRental-primary text-carRental-primary hover:bg-carRental-primary hover:text-white"
                 >

@@ -30,7 +30,7 @@ const Hero = () => {
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-lg p-6 mt-10 lg:mt-0">
+          {/* <div className="bg-white rounded-xl shadow-lg p-6 mt-10 lg:mt-0">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Réservez une voiture</h2>
             <form className="space-y-4">
               <div className="space-y-2">
@@ -92,7 +92,7 @@ const Hero = () => {
                 Rechercher
               </Button>
             </form>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

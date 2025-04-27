@@ -1,15 +1,19 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import { Badge } from "@/components/ui/badge";
-import { Car as CarType } from "@/types/car";
-import { Car as CarIcon, Users, Battery, Fuel, Calendar, Key } from "lucide-react";
+import { Car } from "@/types/car";
+import { Car as CarIcon, Users, Battery, Fuel, Calendar } from "lucide-react";
 
+// Add this interface to define props for the card component
 interface CarCardProps {
-  car: CarType;
+  car: Car;
 }
 
-const CarCard = ({ car }: CarCardProps) => {
-  const getFuelTypeIcon = () => {
-    switch (car.fuelType) {
+// This is your card component that takes car as a prop
+const CarCardComponent = ({ car }: CarCardProps) => {
+  const getFuelTypeIcon = (fuelType: string) => {
+    switch (fuelType) {
       case "electric":
         return <Battery className="h-5 w-5" />;
       case "hybrid":
@@ -21,28 +25,43 @@ const CarCard = ({ car }: CarCardProps) => {
     }
   };
 
-  const getFuelTypeName = () => {
-    switch (car.fuelType) {
+  const getFuelTypeName = (FuelType: string) => {
+    switch (FuelType) {
       case "electric":
         return "Électrique";
-      case "hybrid":
+      case "Hybride":
         return "Hybride";
-      case "essence":
+      case "Essence":
         return "Essence";
+      default:
+        return "Inconnu";
+    }
+  };
+  
+  const getPermit = (permitType: string) => {
+    switch (permitType) {
+      case "B":
+        return "B";
+      case "C":
+        return "C";
+      case "D":
+        return "D";
       default:
         return "Inconnu";
     }
   };
 
   return (
-    <Link to={`/cars/${car.id}`} className="block">
+    <Link to={`/cars/${car._id}`} className="block">
       <div className="bg-white rounded-xl overflow-hidden shadow-md hover-scale car-shadow transition-all">
         <div className="relative h-48 overflow-hidden">
           <img 
-            src={car.image} 
+            src={car.image}
             alt={`${car.marque} ${car.model}`} 
             className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
           />
+                      console.log(car.image);
+
           <div className="absolute top-4 right-4">
             <Badge className={car.status === "disponible" 
               ? "bg-green-500 hover:bg-green-600" 
@@ -53,7 +72,7 @@ const CarCard = ({ car }: CarCardProps) => {
           </div>
           <div className="absolute bottom-4 left-4">
             <Badge className="bg-carRental-primary hover:bg-carRental-secondary">
-              Permis {car.permitType}
+              Permis {getPermit(car.permitType)}
             </Badge>
           </div>
         </div>
@@ -61,34 +80,23 @@ const CarCard = ({ car }: CarCardProps) => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xl font-bold text-gray-900">{car.marque} {car.model}</h3>
-            <span className="font-bold text-carRental-primary">{car.prixJour}€<span className="text-sm font-normal text-gray-500">/jour</span></span>
+            <span className="font-bold text-carRental-primary">{car.prix_journalier}Dh<span className="text-sm font-normal text-gray-500">/jour</span></span>
           </div>
           
           <p className="text-gray-500 mb-4">{car.type}</p>
           
-          {car.status === "occupee" && car.occupancyDates && (
-            <div className="mb-4 p-2 bg-red-50 border border-red-100 rounded-md text-sm">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-red-500" />
-                <span className="text-red-700">
-                  Occupée jusqu'au {new Date(car.occupancyDates.to).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          )}
-          
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="flex items-center space-x-2">
               <Users className="h-5 w-5 text-gray-400" />
-              <span className="text-gray-600">{car.nombrePlaces} Places</span>
+              <span className="text-gray-600">{car.nombre_places} Places</span>
             </div>
             <div className="flex items-center space-x-2">
               <CarIcon className="h-5 w-5 text-gray-400" />
               <span className="text-gray-600">{car.kilometrage} km</span>
             </div>
             <div className="flex items-center space-x-2">
-              {getFuelTypeIcon()}
-              <span className="text-gray-600">{getFuelTypeName()}</span>
+              {getFuelTypeIcon(car.type_carburant)}
+              <span className="text-gray-600">{getFuelTypeName(car.type_carburant)}</span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 rounded-full" style={{ backgroundColor: car.couleur }}></div>
@@ -98,7 +106,11 @@ const CarCard = ({ car }: CarCardProps) => {
           
           <div className="flex justify-between items-center pt-4 border-t border-gray-100">
             <div className="text-sm text-gray-500">
-              Ajoutée le {new Date(car.dateAjout).toLocaleDateString()}
+              {car.date_ajout ? (
+                new Date(car.date_ajout).toLocaleDateString('fr-FR')
+              ) : (
+                "Date non disponible"
+              )}
             </div>
             <div className="text-carRental-primary font-medium text-sm">
               Voir détails →
@@ -110,4 +122,31 @@ const CarCard = ({ car }: CarCardProps) => {
   );
 };
 
-export default CarCard;
+// Rest in peace, CarCards. You fetched cars when nobody asked you to. 
+// const CarCards = () => {
+//   const [cars, setCars] = useState<Car[]>([]);
+//   const [error, setError] = useState<string>("");
+
+//   useEffect(() => {
+//     axios.get("http://localhost:5000/")
+//       .then((response) => {
+//         setCars(response.data); 
+//       })
+//       .catch((err) => {
+//         setError("Error fetching cars: " + err.message);
+//       });
+//   }, []);
+
+//   return (
+//     <div>
+//       {error && <p>{error}</p>}
+//       <div className="car-cards">
+//         {cars.map((car) => (
+//           <CarCardComponent key={car._id} car={car} />
+//         ))}
+//       </div>
+//     </div>
+//   );
+// };
+
+export default CarCardComponent;

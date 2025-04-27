@@ -1,7 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
-from flask_pymongo import PyMongo
+# from flask_pymongo import PyMongo
 from blueprints.cars import voiture_bp  # example route
+from blueprints.manager import manager_bp
 from config import Config
 from Backend.db import mongo
 
@@ -14,7 +15,7 @@ def create_app():
 
     # # Register blueprints
     app.register_blueprint(voiture_bp)
-    # app.register_blueprint(cars_bp, url_prefix='/api/cars')
+    app.register_blueprint(manager_bp)
 
     return app
 
