@@ -1,30 +1,19 @@
 from datetime import datetime
 from bson import ObjectId
-from Backend.db import mongo
 from werkzeug.security import generate_password_hash
+from db import mongo
 
 class Admin:
-    def __init__(
-        self,
-        nom,
-        email,
-        mdp,
-        date_creation=None
-    ):
-        self._id = ObjectId()
-        self.nom = nom
-        self.email = email
-        self.mdp = generate_password_hash(mdp)
-        self.date_creation = date_creation or datetime.utcnow()
+    @staticmethod
+    def create_admin(nom, email, password):
+        hashed_pw = generate_password_hash(password)
+        return mongo.db.admins.insert_one({
+            "nom": nom,
+            "email": email,
+            "mdp": hashed_pw,
+            "date_creation": datetime.utcnow()
+        })
 
-    def save(self):
-        return mongo.db.admins.insert_one(self.to_dict())
-
-    def to_dict(self):
-        return {
-            "_id": self._id,
-            "nom": self.nom,
-            "email": self.email,
-            "mdp": self.mdp,
-            "date_creation": self.date_creation
-        }
+    @staticmethod
+    def find_by_email(email):
+        return mongo.db.admins.find_one({"email": email})

@@ -1,22 +1,18 @@
 from flask import Flask
 from flask_pymongo import PyMongo
-from Backend.config import Config
+from .config import Config
 
-# Initialize PyMongo instance
 mongo = PyMongo()
 
 def create_app():
     app = Flask(__name__)
-    
-    # Load configuration settings from the Config class
     app.config.from_object(Config)
     
-    # Initialize the PyMongo with the app
-    mongo.init_app(app)
-
-    # Import the routes and register them
-    # from routes import auth, car
-    # app.register_blueprint(auth.bp)
-    # app.register_blueprint(car.bp)
-
+    # Initialisation de MongoDB avec l'URI explicite
+    mongo.init_app(app, uri=app.config['MONGO_URI'])
+    
+    # Import des blueprints après initialisation
+    from .main.routes import main
+    app.register_blueprint(main)
+    
     return app

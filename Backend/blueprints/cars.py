@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 import json
 from bson import ObjectId
-from Backend.models.voiture_model import Voiture
+from models.voiture_model import Voiture
 from Backend.db import mongo
 
 voiture_bp = Blueprint('voiture', __name__)
