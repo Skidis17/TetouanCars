@@ -11,6 +11,12 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import ReservationsList from "./components/Admin/ReservationsList";
+import ManagersList from "./components/Admin/ManagersList";
+import { Outlet } from "react-router-dom";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -20,6 +26,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="reservations" element={<ReservationsList />} />
+          <Route path="managers" element={<ManagersList />} /> */}
           <Route path="/" element={<Index />} />
           <Route path="/cars" element={<CarListings />} />
           <Route path="/cars/:id" element={<CarDetails />} />
