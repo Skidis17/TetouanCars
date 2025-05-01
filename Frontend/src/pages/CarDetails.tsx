@@ -156,7 +156,7 @@ const CarDetails = () => {
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="h-2 w-2 rounded-full bg-carRental-primary mt-2"></span>
-                    <span className="text-gray-700">Vous devez présenter un permis de conduire {currentCar.permitType} valide</span>
+                    <span className="text-gray-700">Vous devez présenter un permis de conduire {currentCar.Permis} valide</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="h-2 w-2 rounded-full bg-carRental-primary mt-2"></span>

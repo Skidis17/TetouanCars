@@ -21,6 +21,27 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
     }
   };
 
+  const frenchColorMap = {
+    rouge: 'red',
+    bleu: 'blue',
+    vert: 'green',
+    jaune: 'yellow',
+    noir: 'black',
+    blanc: 'white',
+    gris: 'gray',
+    orange: 'orange',
+    rose: 'pink',
+    violet: 'purple',
+    marron: 'brown',
+    turquoise: 'turquoise',
+    beige: 'beige',
+    bordeaux: '#7C0A02',
+    argent: 'silver',
+    or: 'gold',
+  };
+  const normalizedColor = car.couleur.trim().toLowerCase();
+  const cssColor = frenchColorMap[normalizedColor] || 'gray';
+
   const getFuelTypeName = () => {
     switch (car.type_carburant) {
       case "Electrique":
@@ -35,7 +56,7 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
   };
 
   const getPermitDescription = () => {
-    switch (car.permitType) {
+    switch (car.Permis) {
       case "B":
         return "Permis B (véhicules légers jusqu'à 3,5 tonnes)";
       case "C":
@@ -83,12 +104,15 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
         </div>
         
         <div className="flex flex-col items-center text-center space-y-2">
-          <div className="h-12 w-12 rounded-full bg-carRental-light flex items-center justify-center">
-            <div className="h-6 w-6 rounded-full" style={{ backgroundColor: car.couleur.toLowerCase() }}></div>
-          </div>
-          <span className="text-sm text-gray-500">Couleur</span>
-          <span className="font-medium">{car.couleur}</span>
-        </div>
+    <div className="h-12 w-12 rounded-full bg-carRental-light flex items-center justify-center">
+      <div
+        className="h-6 w-6 rounded-full"
+        style={{ backgroundColor: cssColor }}
+      ></div>
+    </div>
+    <span className="text-sm text-gray-500">Couleur</span>
+    <span className="font-medium">{car.couleur}</span>
+  </div>
 
         <div className="flex flex-col items-center text-center space-y-2">
           <div className="h-12 w-12 rounded-full bg-carRental-light flex items-center justify-center">
@@ -129,11 +153,11 @@ const CarSpecification = ({ car }: CarSpecificationProps) => {
         <h3 className="text-lg font-semibold mb-4">Permis requis</h3>
         <div className="bg-carRental-light p-4 rounded-lg">
           <div className="flex items-center space-x-3 mb-2">
-            <Badge className="bg-carRental-primary">{car.permitType}</Badge>
+            <Badge className="bg-carRental-primary">{car.Permis}</Badge>
             <span className="font-medium">{getPermitDescription()}</span>
           </div>
           <p className="text-sm text-gray-600">
-            Vous devez posséder un permis valide de type {car.permitType} ou supérieur pour conduire ce véhicule.
+            Vous devez posséder un permis valide de type {car.Permis} ou supérieur pour conduire ce véhicule.
           </p>
         </div>
       </div>

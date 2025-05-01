@@ -26,7 +26,7 @@ const FeaturedCars = () => {
         const availableCars = response.data.filter((car: Car) => car.status === "disponible");// ba9i khasni nhayda hitach deja li f bd homa li dispo
   
         if (activeTab === "all") {
-          setFilteredCars(availableCars.slice(0, 6)); //kanfetchiw 6 mn ba3d kan9olo chof les voiture kamlin
+          setFilteredCars(availableCars.slice(0, 3)); //kanfetchiw 3 mn ba3d kan9olo chof les voiture kamlin
         } else {
           setFilteredCars(
             availableCars

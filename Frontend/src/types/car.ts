@@ -17,7 +17,7 @@ export interface Car {
   options: string[];
   date_ajout: Date;
   image: string;
-  permitType: PermitType;
+  Permis: PermitType;
   // occupancyDates?: {
   //   from: string;
   //   to: string;

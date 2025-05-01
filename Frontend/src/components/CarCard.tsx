@@ -38,18 +38,18 @@ const CarCardComponent = ({ car }: CarCardProps) => {
     }
   };
   
-  const getPermit = (permitType: string) => {
-    switch (permitType) {
-      case "B":
-        return "B";
-      case "C":
-        return "C";
-      case "D":
-        return "D";
-      default:
-        return "Inconnu";
-    }
-  };
+  // const getPermit = (permitType: string) => {
+  //   switch (permitType) {
+  //     case "B":
+  //       return "B";
+  //     case "C":
+  //       return "C";
+  //     case "D":
+  //       return "D";
+  //     default:
+  //       return "Inconnu";
+  //   }
+  // };
 
   return (
     <Link to={`/cars/${car._id}`} className="block">
@@ -72,7 +72,7 @@ const CarCardComponent = ({ car }: CarCardProps) => {
           </div>
           <div className="absolute bottom-4 left-4">
             <Badge className="bg-carRental-primary hover:bg-carRental-secondary">
-              Permis {getPermit(car.permitType)}
+              Permis {car.Permis}
             </Badge>
           </div>
         </div>
