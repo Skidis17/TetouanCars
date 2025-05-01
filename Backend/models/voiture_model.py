@@ -1,26 +1,9 @@
-from datetime import datetime
 from bson import ObjectId
-from flask_pymongo import PyMongo
-from Backend.db import mongo
+from datetime import datetime
 
 class Voiture:
-    def __init__(
-        self,
-        marque,
-        modele,
-        annee,
-        immatriculation,
-        couleur,
-        kilometrage,
-        prix_journalier,
-        status="disponible",
-        type_carburant="Essence",
-        nombre_places=5,
-        options=None,
-        image=None,
-        date_ajout=None
-    ):
-        self._id = ObjectId()
+    def __init__(self, marque, modele, annee, immatriculation, couleur, kilometrage, prix_journalier, status, type_carburant, nombre_places, options, image=None, date_ajout=None, _id=None):
+        self._id = ObjectId() if _id is None else _id
         self.marque = marque
         self.modele = modele
         self.annee = annee
@@ -31,12 +14,9 @@ class Voiture:
         self.status = status
         self.type_carburant = type_carburant
         self.nombre_places = nombre_places
-        self.options = options or []
-        self.image = image or "default_car.jpg"
+        self.options = options
+        self.image = image
         self.date_ajout = date_ajout or datetime.utcnow()
-
-    def save(self):
-        return mongo.db.voitures.insert_one(self.to_dict())
 
     def to_dict(self):
         return {
@@ -55,11 +35,3 @@ class Voiture:
             "image": self.image,
             "date_ajout": self.date_ajout
         }
-
-    @staticmethod
-    def find_by_id(car_id):
-        return mongo.db.voitures.find_one({"_id": ObjectId(car_id)})
-
-    @staticmethod
-    def find_all():
-        return list(mongo.db.voitures.find())

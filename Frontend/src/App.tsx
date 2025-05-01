@@ -1,39 +1,25 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
+import ReservationsList from "./components/Admin/ReservationsList";
+import ClientsList from "./components/Admin/ClientsList";
+import ManagersList from "./components/Admin/ManagersList";
+import VoitureList from "./components/Admin/VoitureList";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import AdminLogin from './components/AdminLogin';
-import AdminDashboard from './components/AdminDashboard';
-import CarListings from "./pages/CarListings";
-import CarDetails from "./pages/CarDetails";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/cars" element={<CarListings />} />
-          <Route path="/cars/:id" element={<CarDetails />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />}>
+          <Route path="reservations" element={<ReservationsList />} />
+          <Route path="clients" element={<ClientsList />} />
+          <Route path="managers" element={<ManagersList />} />
+          <Route path="voitures" element={<VoitureList />} />
+        </Route>
+      </Routes>
+    </Router>
+  );
+}
 
 export default App;

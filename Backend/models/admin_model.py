@@ -1,16 +1,16 @@
+import bcrypt
 from datetime import datetime
 from bson import ObjectId
-from werkzeug.security import generate_password_hash
-from db import mongo
+from Backend.db import mongo
 
 class Admin:
     @staticmethod
     def create_admin(nom, email, password):
-        hashed_pw = generate_password_hash(password)
+        hashed_pw = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         return mongo.db.admins.insert_one({
             "nom": nom,
             "email": email,
-            "mdp": hashed_pw,
+            "mdp": hashed_pw.decode('utf-8'),  
             "date_creation": datetime.utcnow()
         })
 

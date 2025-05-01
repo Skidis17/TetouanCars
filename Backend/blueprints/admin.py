@@ -1,85 +1,49 @@
-from flask import Blueprint, request, jsonify
-from werkzeug.security import check_password_hash
-import jwt
-import datetime
+from flask import Blueprint, jsonify, request, session
+from flask_pymongo import PyMongo
+from Backend import mongo 
+import bcrypt
 from functools import wraps
-from db import mongo
-from config import Config
+from bson import ObjectId
+admin_bp = Blueprint('admin', __name__) 
 
-admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
-# Clé secrète depuis la config
-SECRET_KEY = Config.SECRET_KEY
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'admin_id' not in session:
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 @admin_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    if not data:
+        return jsonify({"error": "JSON required"}), 400
 
-    if not email or not password:
-        return jsonify({"success": False, "message": "Email et mot de passe requis"}), 400
+    email = data.get('email', '').lower().strip()
+    password = data.get('password', '').encode('utf-8') 
 
-    # Recherche de l'admin dans MongoDB
-    admin = mongo.db.admins.find_one({"email": email})
+    admin = mongo.db.admins.find_one({'email': email})
     
-    if admin and check_password_hash(admin['mdp'], password):
-        # Création du token JWT
-        token = jwt.encode({
-            'admin_id': str(admin['_id']),
-            'email': admin['email'],
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
-        }, SECRET_KEY, algorithm="HS256")
-
+    if admin and bcrypt.checkpw(password, admin['mdp'].encode('utf-8')):
+        session['admin_id'] = str(admin['_id'])
         return jsonify({
             "success": True,
-            "token": token,
             "admin": {
                 "id": str(admin['_id']),
                 "email": admin['email'],
                 "nom": admin['nom']
             }
         })
-    
-    return jsonify({"success": False, "message": "Identifiants incorrects"}), 401
-
-def admin_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization')
-        
-        if not token:
-            return jsonify({"message": "Token manquant"}), 401
-            
-        try:
-            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            current_admin = mongo.db.admins.find_one({"_id": ObjectId(data['admin_id'])})
-            if not current_admin:
-                return jsonify({"message": "Admin non trouvé"}), 401
-        except Exception as e:
-            return jsonify({"message": "Token invalide", "error": str(e)}), 401
-            
-        return f(current_admin, *args, **kwargs)
-    
-    return decorated
-
-@admin_bp.route('/dashboard', methods=['GET'])
-@admin_required
-def dashboard(current_admin):
-    # Statistiques à récupérer depuis MongoDB
-    stats = {
-        "clients": mongo.db.clients.count_documents({}),
-        "voitures": mongo.db.voitures.count_documents({}),
-        "reservations": mongo.db.reservations.count_documents({}),
-        "revenus": 12500  # À remplacer par un calcul réel
-    }
-    
+    return jsonify({"success": False, "error": "Invalid credentials"}), 401
+@admin_bp.route('/dashboard')
+@login_required
+def dashboard():
+    admin = mongo.db.admins.find_one({'_id': ObjectId(session['admin_id'])})
     return jsonify({
-        "success": True,
         "admin": {
-            "id": str(current_admin['_id']),
-            "email": current_admin['email'],
-            "nom": current_admin['nom']
-        },
-        "stats": stats
+            "email": admin['email'],
+            "nom": admin['nom']
+        }
     })

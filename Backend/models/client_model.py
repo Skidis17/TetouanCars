@@ -23,7 +23,7 @@ class Client:
         self.email = email
         self.telephone = telephone
         self.adresse = adresse or {}
-        self.permis_conduire = permis_conduire  # A/B/C/etc
+        self.permis_conduire = permis_conduire  
         self.numero_permis = numero_permis
         self.date_expiration = date_expiration
         self.CIN = CIN
