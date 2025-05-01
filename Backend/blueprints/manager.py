@@ -1,32 +1,54 @@
-from flask import Blueprint, jsonify
-import json
-from bson import ObjectId
+from flask import Blueprint, request, jsonify
 from Backend.models.manager_model import Manager
 from Backend.db import mongo
+import bcrypt
+from bson import ObjectId
 
 manager_bp = Blueprint('manager', __name__)
 
-@manager_bp.route('/manager', methods=['GET'])
-def get_all_managers():
-    try:
-        managers = mongo.db.managers.find()
-        result = []
-        for manager in managers:
-            manager['_id'] = str(manager['_id'])  # Convert ObjectId to string
-            if 'date_creation' in manager:
-                manager['date_creation'] = manager['date_creation'].isoformat()  # Convert date to ISO string
-            result.append(manager)
-        return jsonify(result), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+@manager_bp.route('/managers', methods=['GET'])
+def get_managers():
+    managers = list(mongo.db.managers.find())
+    for manager in managers:
+        manager['_id'] = str(manager['_id'])
+    return jsonify(managers)
 
-# @voiture_bp.route('/cars/<string:car_id>', methods=['GET'])
-# def get_manager_by_car(car_id):
-#     try:
-#         car = mongo.db.cars.find_one({'_id': ObjectId(car_id)})
-#         if car:
-#             car['_id'] = str(car['_id'])
-#             return jsonify(car), 200
-#         return jsonify({'message': 'Car not found'}), 404
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+
+@manager_bp.route('/Add_manager', methods=['POST'])
+def add_manager():
+    data = request.get_json()
+
+    if 'password' in data:
+        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
+        data['password'] = hashed_password.decode('utf-8') 
+
+    mongo.db.managers.insert_one(data)
+    return jsonify({'message': 'Manager ajouté avec succès'}), 201
+
+
+
+@manager_bp.route('/Update_manager/<id>', methods=['PUT'])
+def update_manager(id):
+    data = request.get_json()
+
+    manager_id = ObjectId(id)
+  
+    result = mongo.db.managers.update_one({'_id': manager_id}, {"$set": data})
+
+    if result.matched_count == 0:
+        return jsonify({'message': 'Aucun manager trouvé avec cet ID'}), 404
+    return jsonify({'message': 'Manager mis à jour avec succès'})
+
+
+
+@manager_bp.route('/Delete_manager/<id>', methods=['DELETE'])
+def delete_manager(id):
+
+    manager_id = ObjectId(id)
+
+    result = mongo.db.managers.delete_one({'_id': manager_id})
+
+    if result.deleted_count == 0:
+        return jsonify({'message': 'Aucun manager trouvé avec cet ID'}), 404
+
+    return jsonify({'message': 'Manager supprimé avec succès'})
