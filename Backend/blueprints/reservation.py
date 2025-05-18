@@ -3,7 +3,7 @@ from Backend.db import mongo
 
 reservation_bp = Blueprint('reservation', __name__)
 
-@reservation_bp.route('/reservations', methods=['GET'])
+@reservation_bp.route('/manager/reservations', methods=['GET'])
 def get_reservations():
     reservations = list(mongo.db.reservations.find())
     for res in reservations:

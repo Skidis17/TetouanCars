@@ -15,7 +15,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@admin_bp.route('/login', methods=['POST'])
+@admin_bp.route('/admin/login', methods=['POST'])
 def login():
     data = request.get_json()
     if not data:
@@ -39,7 +39,7 @@ def login():
     return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
 
-@admin_bp.route('/dashboard')
+@admin_bp.route('/admin/dashboard')
 @login_required
 def dashboard():
     admin = mongo.db.admins.find_one({'_id': ObjectId(session['admin_id'])})

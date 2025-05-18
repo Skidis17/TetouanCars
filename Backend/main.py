@@ -6,12 +6,8 @@ from flask import Flask, send_from_directory
 from config import Config
 import os
 
-# from flask_pymongo import PyMongo
-from blueprints.cars import voiture_bp  # example route
-from blueprints.manager import manager_bp
-from blueprints.index import stats_bp
 from Backend.db import mongo
-from Backend.blueprints import admin, client, manager, reservation
+from Backend.blueprints import admin, client, manager, reservation, cars, index
 
 def create_app():
     app = Flask(__name__)
@@ -20,24 +16,34 @@ def create_app():
     CORS(app)
     mongo.init_app(app)
 
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+    # Route pour servir les images uploadées
+    @app.route('/uploads/<filename>')
+    def uploaded_file(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    
+
     # # Register blueprints
-    app.register_blueprint(stats_bp)
-    app.register_blueprint(voiture_bp)
+    app.register_blueprint(index.stats_bp)
+    app.register_blueprint(cars.voiture_bp)
     app.register_blueprint(admin.admin_bp) 
     app.register_blueprint(client.client_bp)  
     app.register_blueprint(manager.manager_bp)
     app.register_blueprint(reservation.reservation_bp) 
+    
     return app
 
 if __name__ == "__main__":
     app = create_app()
     app.run(debug=True)
 
-# Configuration pour dossier uploads
-UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# # Configuration pour dossier uploads
+# UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads')
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Route pour servir les images uploadées
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+# # Route pour servir les images uploadées
+# @app.route('/uploads/<filename>')
+# def uploaded_file(filename):
+#     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
