@@ -1,6 +1,6 @@
 import { useState } from "react";
-import API from '../services/api'; // using API object now
-import { setAdmin } from "../utils/auth"; // fixed path
+import API from '../../services/api'; // using API object now
+import { setAdmin } from "../../utils/auth"; // fixed path
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {

@@ -166,11 +166,61 @@ def get_reservation(reservation_id):
 @manager_bp.route("/manager/cars", methods=["GET"])
 def get_cars():
     cars = list(mongo.db.voitures.find())
+    now = datetime.now()
+
     for car in cars:
+        car_id = car["_id"]
+
+        # Check if there is an active reservation for this car
+        active_res = mongo.db.reservations.find_one({
+            "voiture_id": car_id,
+            "date_debut": {"$lte": now},
+            "date_fin": {"$gte": now},
+            "statut": {"$in": ["acceptee", "en attente"]}
+        })
+
+        car["status"] = "indisponible" if active_res else "disponible"
         car["_id"] = str(car["_id"])
         if "date_ajout" in car and hasattr(car["date_ajout"], "isoformat"):
             car["date_ajout"] = car["date_ajout"].isoformat()
+
     return jsonify({"cars": cars})
+
+
+@manager_bp.route("/manager/cars/available", methods=["GET"])
+def get_available_cars():
+    try:
+        start = request.args.get("start")
+        end = request.args.get("end")
+
+        if not start or not end:
+            return jsonify({"error": "Missing start or end date"}), 400
+
+        start_date = datetime.fromisoformat(start)
+        end_date = datetime.fromisoformat(end)
+
+        # Get list of car IDs that are reserved in the given date range
+        reserved_car_ids = mongo.db.reservations.distinct("voiture_id", {
+            "date_debut": {"$lte": end_date},
+            "date_fin": {"$gte": start_date},
+            "statut": {"$in": ["acceptee", "en_attente"]}
+        })
+
+        # Find all cars not in the reserved list
+        available_cars = list(mongo.db.cars.find({
+            "_id": {"$nin": reserved_car_ids}
+        }))
+
+        for car in available_cars:
+            car["_id"] = str(car["_id"])
+            if "date_ajout" in car and hasattr(car["date_ajout"], "isoformat"):
+                car["date_ajout"] = car["date_ajout"].isoformat()
+
+        return jsonify({"cars": available_cars}), 200
+
+    except Exception as e:
+        print("Error fetching available cars:", str(e))
+        return jsonify({"error": "Failed to fetch available cars", "details": str(e)}), 500
 
 
 # Calendrie (Pedagoquique hihi)
@@ -259,45 +309,31 @@ def add_manager():
 def add_reservation():
     try:
         data = request.json
-        print("Received data:", data)  # Debug log
-
-        # Use existing client ID
+        print("Received data:", data)
         client_id = ObjectId(data["clientId"])
+        car_id = ObjectId(data["carId"])
+        details = data["reservationDetails"]
 
-        # Create car document
-        car_data = data["carDetails"]
-        car_id = mongo.db.voitures.insert_one(car_data).inserted_id
-
-        # Create reservation document
-        reservation_data = data["reservationDetails"]
         reservation = {
             "client_id": client_id,
             "voiture_id": car_id,
-            "manager_createur_id": ObjectId("607f1f77bcf86cd799439012"),  # Hardcoded for now
-            "date_debut": datetime.fromisoformat(reservation_data["startDate"]),
-            "date_fin": datetime.fromisoformat(reservation_data["endDate"]),
-            "prix_total": reservation_data["totalAmount"],
-            "statut": "confirmed",
+            "date_debut": datetime.fromisoformat(details["startDate"].replace("Z", "+00:00")),
+            "date_fin": datetime.fromisoformat(details["endDate"].replace("Z", "+00:00")),
+            "prix_total": details["totalAmount"],
+            "discount": details.get("discount", 0),  
+            "statut": "en attente",
             "date_reservation": datetime.now(),
             "paiement": {
-                "methode": reservation_data["paymentMethod"],
-                "statut": reservation_data["paymentStatus"]
+                "methode": details["paymentMethod"],
+                "statut": details["paymentStatus"]
             }
         }
-
         result = mongo.db.reservations.insert_one(reservation)
-
-        return jsonify({
-            "message": "Reservation created successfully",
-            "id": str(result.inserted_id)
-        }), 201
-
+        return jsonify({"message": "Reservation created successfully", "id": str(result.inserted_id)}), 201
     except Exception as e:
-        print("Error:", str(e))  # Debug log
-        return jsonify({
-            "error": "Failed to create reservation",
-            "message": str(e)
-        }), 500
+        print("Error:", str(e))
+        return jsonify({"error": "Failed to create reservation", "message": str(e)}), 500
+    
 
 # Add a new client
 @manager_bp.route("/manager/clients", methods=["POST"])
@@ -418,6 +454,33 @@ def update_reservation(reservation_id):
             "error": "Failed to update reservation",
             "message": str(e)
         }), 500
+    
+@manager_bp.route("/manager/cars/<car_id>", methods=["PUT"])
+def update_car(car_id):
+    data = request.json
+    update_fields = {
+        "marque": data.get("marque"),
+        "modele": data.get("modele"),
+        "annee": int(data.get("annee")),
+        "immatriculation": data.get("immatriculation"),
+        "couleur": data.get("couleur"),
+        "kilometrage": int(data.get("kilometrage")),
+        "prix_journalier": float(data.get("prix_journalier")),
+        "status": data.get("status", "disponible"),
+        "type_carburant": data.get("type_carburant"),
+        "nombre_places": int(data.get("nombre_places")),
+        "options": data.get("options", []),
+        "image": data.get("image", ""),
+    }
+    result = mongo.db.cars.update_one(
+        {"_id": ObjectId(car_id)},
+        {"$set": update_fields}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Car not found"}), 404
+    return jsonify({"message": "Car updated successfully"}), 200
+
 ##------------------------------------------##
 
 
@@ -460,21 +523,96 @@ def delete_client(client_id):
     try:
         result = mongo.db.clients.delete_one({"_id": ObjectId(client_id)})
         if result.deleted_count == 1:
-            return jsonify({"message": "Client supprimé avec succès"}), 200
+            # Delete all reservations related to this client
+            mongo.db.reservations.delete_many({"client_id": ObjectId(client_id)})
+            return jsonify({"message": "Client and related reservations deleted"}), 200
         else:
-            return jsonify({"error": "Client non trouvé"}), 404
+            return jsonify({"error": "Client not found"}), 404
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 # Delete a car
-@manager_bp.route("/manager/cars/<car_id>", methods=["DELETE"])
+@manager_bp.route("/manger/cars/<car_id>", methods=["DELETE"])
 def delete_car(car_id):
-    try:
-        result = mongo.db.cars.delete_one({"_id": ObjectId(car_id)})
-        if result.deleted_count == 1:
-            return jsonify({"message": "Voiture supprimée avec succès"}), 200
-        else:
-            return jsonify({"error": "Voiture non trouvée"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    result = mongo.db.cars.delete_one({"_id": ObjectId(car_id)})
+
+    if result.deleted_count == 1:
+        # Delete all reservations related to this car
+        mongo.db.reservations.delete_many({"voiture_id": ObjectId(car_id)})
+        return jsonify({"message": "Car and related reservations deleted"}), 200
+    else:
+        return jsonify({"error": "Car not found"}), 404
     
+
+
+##--------------- UPDATE METHOD ---------------##
+
+@manager_bp.route("/manager/clients/<client_id>", methods=["PUT"])
+def update_client(client_id):
+    try:
+        data = request.json
+        update_fields = {
+            "nom": data["nom"],
+            "prenom": data["prenom"],
+            "email": data["email"],
+            "telephone": data["telephone"],
+            "adresse": {
+                "rue": data["adresse"]["rue"],
+                "immeuble": data["adresse"]["immeuble"],
+                "appartement": data["adresse"]["appartement"],
+                "ville": data["adresse"]["ville"],
+                "code_postal": data["adresse"]["code_postal"],
+            },
+            "CIN": data["CIN"],
+            "permis_conduire": data["permis_conduire"],
+            "numero_permis": data["numero_permis"],
+        }
+
+        result = mongo.db.clients.update_one(
+            {"_id": ObjectId(client_id)},
+            {"$set": update_fields}
+        )
+
+        if result.matched_count == 0:
+            return jsonify({"error": "Client not found"}), 404
+
+        return jsonify({"message": "Client updated successfully"}), 200
+
+    except Exception as e:
+        print("Error updating client:", str(e))
+        return jsonify({"error": "Failed to update client"}), 500
+    
+##--------------------------------------------##
+
+
+
+
+##--------------- PATCH METHOD ---------------##
+
+@manager_bp.route("/manager/reservations/<reservation_id>", methods=["PATCH"])
+def patch_reservation(reservation_id):
+    data = request.json
+    update_fields = {}
+
+    if "status" in data:
+        update_fields["statut"] = data["status"]
+
+    if "paymentStatus" in data:
+        update_fields["paiement.statut"] = data["paymentStatus"]
+
+    if not update_fields:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    # Directly access the collection via mongo
+    result = mongo.db.reservations.update_one(
+        {"_id": ObjectId(reservation_id)},
+        {"$set": update_fields}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Reservation not found"}), 404
+
+    return jsonify({"message": "Reservation updated successfully"}), 200
+
+##--------------------------------------------##
