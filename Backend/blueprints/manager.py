@@ -19,7 +19,7 @@ manager_bp = Blueprint('manager', __name__)
 
 ##--------------- GET METHOD ---------------##
 
-@manager_bp.route('/manager', methods=['GET'])
+@manager_bp.route('/managers', methods=['GET'])
 def get_managers():
     managers = list(mongo.db.managers.find())
     for manager in managers:
@@ -84,7 +84,7 @@ def upcoming_reservations():
 
 
 # Tout les Reservations
-@manager_bp.route("/manager/reservations", methods=["GET"])
+@manager_bp.route("/managers/reservations", methods=["GET"])
 def get_reservations():
     reservations = list(mongo.db.reservations.find({}, {
         "_id": 1,
@@ -131,7 +131,7 @@ def get_reservations():
 
 
 # Reservation by ID
-@manager_bp.route("/manager/reservations/<reservation_id>", methods=["GET"])
+@manager_bp.route("/managers/reservations/<reservation_id>", methods=["GET"])
 def get_reservation(reservation_id):
     try:
         reservation = mongo.db.reservations.find_one({"_id": ObjectId(reservation_id)})
@@ -264,7 +264,7 @@ def calendar_reservations():
 
 
 # Clients list
-@manager_bp.route("/manager/clients", methods=["GET"])
+@manager_bp.route("/managers/clients", methods=["GET"])
 def get_clients():
     try:
         clients = list(mongo.db.clients.find({}, {
@@ -293,7 +293,7 @@ def get_clients():
 
 ##--------------- POST METHOD ---------------##
 
-@manager_bp.route('/Add_manager', methods=['POST'])
+@manager_bp.route('/managers', methods=['POST'])
 def add_manager():
     data = request.get_json()
 
@@ -305,7 +305,7 @@ def add_manager():
     return jsonify({'message': 'Manager ajouté avec succès'}), 201
 
 # Add a new reservation
-@manager_bp.route("/manager/reservations", methods=["POST"])
+@manager_bp.route("/managers/reservations", methods=["POST"])
 def add_reservation():
     try:
         data = request.json
@@ -336,7 +336,7 @@ def add_reservation():
     
 
 # Add a new client
-@manager_bp.route("/manager/clients", methods=["POST"])
+@manager_bp.route("/managers/clients", methods=["POST"])
 def add_client():
     try:
         data = request.json
@@ -371,7 +371,7 @@ def add_client():
         }), 500
 
 # Add a new car
-@manager_bp.route("/manager/cars", methods=["POST"])
+@manager_bp.route("/managers/cars", methods=["POST"])
 def add_car():
     try:
         data = request.json

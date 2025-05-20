@@ -120,7 +120,7 @@ const ClientsList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getClients();
+        const data = await API.getClients();
         setClients(data);
         setFilteredClients(data);
         setLoading(false);

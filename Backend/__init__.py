@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_pymongo import PyMongo
-from Backend.config import Config
+from config import Config
 
 # Initialize PyMongo instance
 mongo = PyMongo()
