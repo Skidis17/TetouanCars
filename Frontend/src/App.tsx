@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AdminLogin from "./pages/AdminLogin";
+import AdminLogin from "./components/Auth/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import ReservationsList from "./components/Admin/ReservationsList";
 import ClientsList from "./components/Admin/ClientsList";
@@ -12,10 +12,10 @@ function App() {
       <Routes>
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />}>
-          <Route path="reservations" element={<ReservationsList />} />
-          <Route path="clients" element={<ClientsList />} />
-          <Route path="managers" element={<ManagersList />} />
-          <Route path="voitures" element={<VoitureList />} />
+        <Route path="reservations" element={<ReservationsList />} />
+        <Route path="clients" element={<ClientsList />} />
+        <Route path="managers" element={<ManagersList />} />
+        <Route path="voitures" element={<VoitureList />} />
         </Route>
       </Routes>
     </Router>

@@ -1,0 +1,64 @@
+.dialogContent {
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+}
+
+.dialogHeader {
+  margin-bottom: 1.5rem;
+}
+
+.dialogTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.75rem;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.infoItem {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.infoLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.infoValue {
+  font-weight: 500;
+  color: #111827;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}

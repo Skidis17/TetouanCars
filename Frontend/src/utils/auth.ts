@@ -1,4 +1,3 @@
-// src/utils/auth.ts
 export const setAdmin = (admin: any) => {
     localStorage.setItem("admin", JSON.stringify(admin));
   };
@@ -11,4 +10,3 @@ export const setAdmin = (admin: any) => {
   export const logoutAdmin = () => {
     localStorage.removeItem("admin");
   };
-  

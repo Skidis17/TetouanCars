@@ -12,33 +12,58 @@ def get_managers():
     for manager in managers:
         manager['_id'] = str(manager['_id'])
     return jsonify(managers)
-@manager_bp.route('/api/managers', methods=['POST'])
+@manager_bp.route('/managers', methods=['POST'])
 def add_manager():
     data = request.get_json()
 
-    if 'password' in data:
-        hashed_password = bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt())
-        data['password'] = hashed_password.decode('utf-8') 
+    if 'mot_de_passe' in data:
+        hashed_password = bcrypt.hashpw(data['mot_de_passe'].encode('utf-8'), bcrypt.gensalt())
+        data['mot_de_passe'] = hashed_password.decode('utf-8') 
 
     mongo.db.managers.insert_one(data)
     
     return jsonify({'message': 'Manager ajouté avec succès'}), 201
 
-@manager_bp.route('/api/managers/<id>', methods=['PUT'])
+@manager_bp.route('/managers/<id>', methods=['PUT'])
 def update_manager(id):
-    data = request.get_json()
+    try:
+        data = request.get_json()
+        
+        # Ne pas permettre la modification de l'email et de la date de création
+        if 'email' in data:
+            del data['email']
+        if 'date_creation' in data:
+            del data['date_creation']
+        
+        # Hashage du mot de passe si fourni
+        if 'mot_de_passe' in data and data['mot_de_passe']:
+            hashed_password = bcrypt.hashpw(data['mot_de_passe'].encode('utf-8'), bcrypt.gensalt())
+            data['mot_de_passe'] = hashed_password.decode('utf-8')
+        elif 'mot_de_passe' in data and not data['mot_de_passe']:
+            del data['mot_de_passe']
+        
+        manager_id = ObjectId(id)
+        result = mongo.db.managers.update_one(
+            {'_id': manager_id},
+            {"$set": data}
+        )
+        
+        if result.matched_count == 0:
+            return jsonify({'success': False, 'message': 'Manager non trouvé'}), 404
+        
+        return jsonify({
+            'success': True,
+            'message': 'Manager mis à jour avec succès',
+            'data': data
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Erreur lors de la mise à jour: {str(e)}'
+        }), 500
 
-
-    manager_id = ObjectId(id)
-  
-    result = mongo.db.managers.update_one({'_id': manager_id}, {"$set": data})
-
-    if result.matched_count == 0:
-        return jsonify({'message': 'Aucun manager trouvé avec cet ID'}), 404
-    
-    return jsonify({'message': 'Manager mis à jour avec succès'})
-
-@manager_bp.route('/api/managers/<id>', methods=['DELETE'])
+@manager_bp.route('/managers/<id>', methods=['DELETE'])
 def delete_manager(id):
 
     manager_id = ObjectId(id)

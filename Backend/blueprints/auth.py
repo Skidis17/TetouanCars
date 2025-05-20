@@ -2,6 +2,6 @@ from flask import Blueprint
 
 auth_bp = Blueprint('auth', __name__)
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route('/admin/login', methods=['POST'])
 def login():
     return "Auth endpoint"

@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify
+from bson import ObjectId
+from datetime import datetime
 from Backend.db import mongo
 
 reservation_bp = Blueprint('reservation', __name__)
@@ -11,8 +13,10 @@ def get_reservations():
         res['client_id'] = str(res['client_id'])
         res['voiture_id'] = str(res['voiture_id'])
         res['manager_createur_id'] = str(res['manager_createur_id'])
-        res['manager_traiteur_id'] = str(res['manager_traiteur_id'])
+        if 'manager_traiteur_id' in res:
+            res['manager_traiteur_id'] = str(res['manager_traiteur_id'])
         res['date_debut'] = res['date_debut'].isoformat() 
         res['date_fin'] = res['date_fin'].isoformat() 
         res['date_reservation'] = res['date_reservation'].isoformat() 
     return jsonify(reservations)
+

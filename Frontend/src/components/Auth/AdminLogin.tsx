@@ -1,7 +1,7 @@
-// src/pages/AdminLogin.tsx
+
 import { useState } from "react";
-import { loginAdmin } from "../services/api";
-import { setAdmin } from "../utils/auth";
+import { loginAdmin } from "../../services/api";
+import { setAdmin } from "../../utils/auth";
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
@@ -16,7 +16,7 @@ const AdminLogin = () => {
       const res = await loginAdmin(email, password);
       if (res.success) {
         setAdmin(res.admin);
-        navigate("/admin/dashboard"); // Redirige vers dashboard
+        navigate("/admin/dashboard");
       } else {
         setError("Email ou mot de passe incorrect.");
       }

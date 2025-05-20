@@ -1,4 +1,4 @@
-// src/services/api.ts
+
 import axios from "axios";
 
 const API_URL = "http://localhost:5000/api";
@@ -7,7 +7,10 @@ export const loginAdmin = async (email: string, password: string) => {
   const response = await axios.post(`${API_URL}/admin/login`, { email, password });
   return response.data;
 };
-
+export const getVoitures = async () => {
+  const response = await axios.get(`${API_URL}/voitures`);
+  return response.data;
+};
 // Récupérer toutes les réservations
 export const getReservations = async () => {
   const response = await axios.get(`${API_URL}/reservations`);
