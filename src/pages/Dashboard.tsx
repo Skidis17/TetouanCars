@@ -98,21 +98,25 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {upcomingReservations.map((reservation, index) => (
-                <div key={index} className="p-3 border rounded-md flex justify-between items-center bg-secondary/50">
-                  <div>
-                    <p className="font-medium">{reservation.clientName}</p>
-                    <p className="text-sm text-muted-foreground">{reservation.carModel} - {new Date(reservation.startDate).toLocaleDateString()}</p>
+              {upcomingReservations
+                .filter(reservation => reservation.status !== "refusée")
+                .map((reservation, index) => (
+                  <div key={index} className="p-3 border rounded-md flex justify-between items-center bg-secondary/50">
+                    <div>
+                      <p className="font-medium">{reservation.clientName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {reservation.carModel} - {new Date(reservation.startDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      reservation.status === "acceptée"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {reservation.status}
+                    </span>
                   </div>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    reservation.status === "Confirmée" 
-                      ? "bg-green-100 text-green-800" 
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {reservation.status}
-                  </span>
-                </div>
-              ))}
+                ))}
             </div>
           </CardContent>
         </Card>

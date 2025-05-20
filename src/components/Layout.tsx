@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, Car, FileText, LogOut, Menu, User, X } from 'lucide-react';
+import { Calendar, Car, FileText, LogOut, Menu, User, X, ClipboardList, LayoutDashboard, History} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Layout = ({ children }) => {
@@ -23,10 +23,14 @@ const Layout = ({ children }) => {
   };
 
   const menuItems = [
-    { name: 'Tableau de Bord', path: '/dashboard', icon: <FileText className="h-5 w-5" /> },
-    { name: 'Réservations', path: '/reservations', icon: <Car className="h-5 w-5" /> },
+    { name: 'Tableau de Bord', path: '/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+    { name: 'Réservations', path: '/reservations', icon: <ClipboardList className="h-5 w-5" /> },
     { name: 'Calendrier', path: '/calendar', icon: <Calendar className="h-5 w-5" /> },
     { name: 'Liste des Clients', path: '/clients', icon: <User className="h-5 w-5" /> }, 
+    { name: 'Liste des voitures', path: '/CarsList', icon: <Car className="h-5 w-5" /> }, 
+    { name: 'Historique Réservations', path: '/reservations-history', icon: <History className="h-5 w-5" /> },
+
+
   ];
 
   return (

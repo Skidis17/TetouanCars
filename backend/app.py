@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import os
 from dotenv import load_dotenv
 from bson import ObjectId
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -123,51 +124,63 @@ def delete_reservation(reservation_id):
     else:
         return jsonify({"error": "Reservation not found"}), 404
 
+@app.route("/api/reservations/<reservation_id>", methods=["PATCH"])
+def patch_reservation(reservation_id):
+    data = request.json
+    update_fields = {}
+
+    # Update status if provided
+    if "status" in data:
+        update_fields["statut"] = data["status"]
+
+    # Update payment status if provided
+    if "paymentStatus" in data:
+        update_fields["paiement.statut"] = data["paymentStatus"]
+
+    if not update_fields:
+        return jsonify({"error": "No valid fields to update"}), 400
+
+    result = reservations_collection.update_one(
+        {"_id": ObjectId(reservation_id)},
+        {"$set": update_fields}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "Reservation not found"}), 404
+
+    return jsonify({"message": "Reservation updated successfully"}), 200
+
+
 # Add a new reservation
 @app.route("/api/reservations", methods=["POST"])
 def add_reservation():
     try:
         data = request.json
-        print("Received data:", data)  # Debug log
-
-        # Use existing client ID
+        print("Received data:", data)
         client_id = ObjectId(data["clientId"])
+        car_id = ObjectId(data["carId"])
+        details = data["reservationDetails"]
 
-        # Create car document
-        car_data = data["carDetails"]
-        car_id = cars_collection.insert_one(car_data).inserted_id
-
-        # Create reservation document
-        reservation_data = data["reservationDetails"]
         reservation = {
             "client_id": client_id,
             "voiture_id": car_id,
-            "manager_createur_id": ObjectId("607f1f77bcf86cd799439012"),  # Hardcoded for now
-            "date_debut": datetime.fromisoformat(reservation_data["startDate"]),
-            "date_fin": datetime.fromisoformat(reservation_data["endDate"]),
-            "prix_total": reservation_data["totalAmount"],
-            "statut": "confirmed",
+            "date_debut": datetime.fromisoformat(details["startDate"].replace("Z", "+00:00")),
+            "date_fin": datetime.fromisoformat(details["endDate"].replace("Z", "+00:00")),
+            "prix_total": details["totalAmount"],
+            "discount": details.get("discount", 0),  
+            "statut": "en attente",
             "date_reservation": datetime.now(),
             "paiement": {
-                "methode": reservation_data["paymentMethod"],
-                "statut": reservation_data["paymentStatus"]
+                "methode": details["paymentMethod"],
+                "statut": details["paymentStatus"]
             }
         }
-
         result = reservations_collection.insert_one(reservation)
-        
-        return jsonify({
-            "message": "Reservation created successfully",
-            "id": str(result.inserted_id)
-        }), 201
-
+        return jsonify({"message": "Reservation created successfully", "id": str(result.inserted_id)}), 201
     except Exception as e:
-        print("Error:", str(e))  # Debug log
-        return jsonify({
-            "error": "Failed to create reservation",
-            "message": str(e)
-        }), 500
-
+        print("Error:", str(e))
+        return jsonify({"error": "Failed to create reservation", "message": str(e)}), 500
+    
 # Fetch a single reservation by ID
 @app.route("/api/reservations/<reservation_id>", methods=["GET"])
 def get_reservation(reservation_id):
@@ -297,18 +310,61 @@ def delete_client(client_id):
     try:
         result = clients_collection.delete_one({"_id": ObjectId(client_id)})
         if result.deleted_count == 1:
-            return jsonify({"message": "Client deleted"}), 200
+            # Delete all reservations related to this client
+            reservations_collection.delete_many({"client_id": ObjectId(client_id)})
+            return jsonify({"message": "Client and related reservations deleted"}), 200
         else:
             return jsonify({"error": "Client not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+#UPDATE CLIENT
+@app.route("/api/clients/<client_id>", methods=["PUT"])
+def update_client(client_id):
+    try:
+        data = request.json
+        update_fields = {
+            "nom": data["nom"],
+            "prenom": data["prenom"],
+            "email": data["email"],
+            "telephone": data["telephone"],
+            "adresse": {
+                "rue": data["adresse"]["rue"],
+                "immeuble": data["adresse"]["immeuble"],
+                "appartement": data["adresse"]["appartement"],
+                "ville": data["adresse"]["ville"],
+                "code_postal": data["adresse"]["code_postal"],
+            },
+            "CIN": data["CIN"],
+            "permis_conduire": data["permis_conduire"],
+            "numero_permis": data["numero_permis"],
+        }
+        result = clients_collection.update_one(
+            {"_id": ObjectId(client_id)},
+            {"$set": update_fields}
+        )
+        if result.matched_count == 0:
+            return jsonify({"error": "Client not found"}), 404
+        return jsonify({"message": "Client updated successfully"}), 200
+    except Exception as e:
+        print("Error updating client:", str(e))
+        return jsonify({"error": "Failed to update client"}), 500
+    
 # List all cars
 @app.route("/api/cars", methods=["GET"])
 def get_cars():
     cars = list(cars_collection.find())
+    now = datetime.now()
     for car in cars:
+        car_id = car["_id"]
+        # Check if there is an active reservation for this car
+        active_res = reservations_collection.find_one({
+            "voiture_id": car_id,
+            "date_debut": {"$lte": now},
+            "date_fin": {"$gte": now},
+            "statut": {"$in": ["acceptée", "en attente"]}
+        })
+        car["status"] = "indisponible" if active_res else "disponible"
         car["_id"] = str(car["_id"])
         if "date_ajout" in car and hasattr(car["date_ajout"], "isoformat"):
             car["date_ajout"] = car["date_ajout"].isoformat()
@@ -343,10 +399,69 @@ def add_car():
 def delete_car(car_id):
     result = cars_collection.delete_one({"_id": ObjectId(car_id)})
     if result.deleted_count == 1:
-        return jsonify({"message": "Car deleted"}), 200
+        # Delete all reservations related to this car
+        reservations_collection.delete_many({"voiture_id": ObjectId(car_id)})
+        return jsonify({"message": "Car and related reservations deleted"}), 200
     else:
         return jsonify({"error": "Car not found"}), 404
     
+# Update a car
+@app.route("/api/cars/<car_id>", methods=["PUT"])
+def update_car(car_id):
+    data = request.json
+    update_fields = {
+        "marque": data.get("marque"),
+        "modele": data.get("modele"),
+        "annee": int(data.get("annee")),
+        "immatriculation": data.get("immatriculation"),
+        "couleur": data.get("couleur"),
+        "kilometrage": int(data.get("kilometrage")),
+        "prix_journalier": float(data.get("prix_journalier")),
+        "status": data.get("status", "disponible"),
+        "type_carburant": data.get("type_carburant"),
+        "nombre_places": int(data.get("nombre_places")),
+        "options": data.get("options", []),
+        "image": data.get("image", ""),
+    }
+    result = cars_collection.update_one(
+        {"_id": ObjectId(car_id)},
+        {"$set": update_fields}
+    )
+    if result.matched_count == 0:
+        return jsonify({"error": "Car not found"}), 404
+    return jsonify({"message": "Car updated successfully"}), 200
+    
+#get available cars
+@app.route("/api/cars/available", methods=["GET"])
+def get_available_cars():
+    try:
+        start = request.args.get("start")
+        end = request.args.get("end")
+        if not start or not end:
+            return jsonify({"error": "Missing start or end date"}), 400
+
+        start_date = datetime.fromisoformat(start)
+        end_date = datetime.fromisoformat(end)
+
+        # Find cars that are NOT reserved in the given range
+        reserved_car_ids = reservations_collection.distinct("voiture_id", {
+            "$or": [
+                {
+                    "date_debut": {"$lte": end_date},
+                    "date_fin": {"$gte": start_date},
+                    "statut": {"$in": ["acceptée", "en attente"]}
+                }
+            ]
+        })
+        available_cars = list(cars_collection.find({
+            "_id": {"$nin": reserved_car_ids}
+        }))
+        for car in available_cars:
+            car["_id"] = str(car["_id"])
+        return jsonify({"cars": available_cars}), 200
+    except Exception as e:
+        print("Error fetching available cars:", str(e))
+        return jsonify({"error": "Failed to fetch available cars"}), 500
 
 # Run the Flask app
 if __name__ == "__main__":

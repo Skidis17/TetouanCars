@@ -20,7 +20,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Phone, Mail, Edit, Trash, Plus, Search } from "lucide-react";
+import { Phone, Mail, Trash, Plus, Search } from "lucide-react";
 
 const Reservations = () => {
   const navigate = useNavigate();
@@ -48,12 +48,14 @@ const Reservations = () => {
     fetchReservations();
   }, [navigate]);
 
-  const filteredReservations = reservations.filter(
-    (reservation) =>
-      reservation.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.carModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredReservations = reservations
+    .filter((reservation) => reservation.status === "en attente")
+    .filter(
+      (reservation) =>
+        reservation.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.carModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reservation.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
   const handleDelete = async (id: string) => {
     try {
@@ -82,9 +84,42 @@ const Reservations = () => {
     }
   };
 
-  const handleEdit = (id: string) => {
-    navigate(`/edit-reservation/${id}`);
+  // Accept reservation
+  const handleAccept = async (id: string) => {
+    try {
+      await axios.patch(`http://localhost:5000/api/reservations/${id}`, { status: "acceptée" });
+      setReservations(reservations.map(res => res.id === id ? { ...res, status: "acceptée" } : res));
+      toast({ title: "Réservation acceptée" });
+    } catch (error) {
+      toast({ title: "Erreur lors de l'acceptation", variant: "destructive" });
+    }
   };
+
+  // Refuse reservation
+  const handleRefuse = async (id: string) => {
+    try {
+      await axios.patch(`http://localhost:5000/api/reservations/${id}`, { status: "refusée" });
+      setReservations(reservations.map(res => res.id === id ? { ...res, status: "refusée" } : res));
+      toast({ title: "Réservation refusée" });
+    } catch (error) {
+      toast({ title: "Erreur lors du refus", variant: "destructive" });
+    }
+  };
+
+  // Toggle payment status
+  const handleTogglePayment = async (id: string, currentStatus: string) => {
+    if (currentStatus === "payée") {
+      toast({ title: "Le paiement est déjà effectué", variant: "default" });
+      return;
+    }
+    try {
+      await axios.patch(`http://localhost:5000/api/reservations/${id}`, { paymentStatus: "payée" });
+      setReservations(reservations.map(res => res.id === id ? { ...res, paymentStatus: "payée" } : res));
+      toast({ title: "Statut de paiement mis à jour" });
+    } catch (error) {
+      toast({ title: "Erreur lors de la mise à jour du paiement", variant: "destructive" });
+    }
+};
 
   return (
     <div className="p-6 space-y-6">
@@ -134,14 +169,28 @@ const Reservations = () => {
                 <TableCell>{new Date(reservation.endDate).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    reservation.status === "Confirmed" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                    reservation.status === "acceptée"
+                      ? "bg-green-100 text-green-800"
+                      : reservation.status === "refusée"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-yellow-100 text-yellow-800"
                   }`}>
                     {reservation.status}
                   </span>
                 </TableCell>
                 <TableCell>${reservation.totalAmount}</TableCell>
                 <TableCell>{reservation.paymentMethod || "N/A"}</TableCell>
-                <TableCell>{reservation.paymentStatus || "N/A"}</TableCell>
+                <TableCell>
+                  <Button
+                    size="sm"
+                    variant={reservation.paymentStatus === "payée" ? "default" : "outline"}
+                    className={reservation.paymentStatus === "payée" ? "bg-green-100 text-green-800 border-green-300" : ""}
+                    onClick={() => handleTogglePayment(reservation.id, reservation.paymentStatus)}
+                    disabled={reservation.paymentStatus === "payée"}
+                  >
+                    {reservation.paymentStatus === "payée" ? "Payée" : "Non payée"}
+                  </Button>
+                </TableCell>
                 <TableCell>{new Date(reservation.reservationDate).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -165,12 +214,20 @@ const Reservations = () => {
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
+                    onClick={() => handleAccept(reservation.id)}
+                  >
+                    Accepter
+                  </Button>
                     <Button
-                      variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(reservation.id)}
+                      variant="destructive"
+                      onClick={() => handleRefuse(reservation.id)}
                     >
-                      <Edit className="h-4 w-4" />
+                      Refuser
                     </Button>
                     <Button
                       variant="ghost"

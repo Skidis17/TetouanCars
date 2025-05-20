@@ -54,7 +54,7 @@ const Login = () => {
     e.preventDefault();
     if (email && password) { // Just check if fields are not empty
       localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({ name: "Administrateur TetouanCars" }));
+      localStorage.setItem("user", JSON.stringify({ name: "Manager TetouanCars" }));
       navigate("/dashboard");
       toast({
         title: "Connexion réussie",

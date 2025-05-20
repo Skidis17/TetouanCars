@@ -123,7 +123,10 @@ const CalendarView = () => {
 
             {/* Calendar cells */}
             {weekDays.map((day) => {
-              const dayReservations = getReservationsForDay(day);
+              // Filter out refusée reservations
+              const dayReservations = getReservationsForDay(day).filter(
+                (reservation) => reservation.status !== "refusée"
+              );
               return (
                 <div
                   key={day.toString() + "-cell"}
@@ -139,10 +142,10 @@ const CalendarView = () => {
                           key={reservation.id}
                           onClick={() => handleReservationClick(reservation)}
                           className={`text-xs p-1 rounded cursor-pointer transition-colors ${
-                            reservation.status === "Confirmed"
-                              ? "bg-green-100 hover:bg-green-200 text-green-800"
-                              : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
-                          }`}
+                            reservation.status === "acceptée"
+                                ? "bg-green-100 hover:bg-green-200 text-green-800"
+                                : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
+                            }`}
                         >
                           <div className="font-medium truncate">{reservation.carModel}</div>
                           <div className="truncate">{reservation.clientName}</div>

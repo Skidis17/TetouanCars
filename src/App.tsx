@@ -14,6 +14,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AddReservation from "./pages/AddReservation";
 import EditReservation from "@/pages/EditReservation";
 import ListeClients from "./pages/ListeClients";
+import CarsList from "@/pages/CarsList";
+import EditCar from "@/pages/EditCar";
+import AddCar from "@/pages/AddCar";
+import ReservationsHistory from "@/pages/ReservationsHistory";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +74,38 @@ const App = () => (
             <ProtectedRoute>
               <Layout>
                 <ListeClients />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/CarsList" element={
+            <ProtectedRoute>
+              <Layout>
+                <CarsList />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/cars/edit/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <EditCar />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/cars/add" element={
+            <ProtectedRoute>
+              <Layout>
+                <AddCar />
+              </Layout>
+            </ProtectedRoute>
+          } />
+
+          <Route path="/reservations-history" element={
+            <ProtectedRoute>
+              <Layout>
+                <ReservationsHistory />
               </Layout>
             </ProtectedRoute>
           } />
