@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import API from '../../services/api';
-import { saveAdmin } from '../../utils/auth';
 import { useNavigate } from 'react-router-dom';
 
 const AdminLogin = () => {
@@ -15,7 +14,7 @@ const AdminLogin = () => {
       const response = await API.post('/admin/login', { email, password });
       if (response.data.success) {
         saveAdmin(response.data.admin);
-        navigate('/admin-dashboard'); // Redirection vers le dashboard
+        navigate('/admin-dashboard'); 
       } else {
         setError('Email ou mot de passe incorrect.');
       }

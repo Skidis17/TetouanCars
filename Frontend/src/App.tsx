@@ -16,6 +16,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ReservationsList from "./components/Admin/ReservationsList";
 import ManagersList from "./components/Admin/ManagersList";
 import { Outlet } from "react-router-dom";
+import ClientsList from "./components/Admin/ClientsList";
+import VoitureList from "./components/Admin/VoitureList";
 
 const queryClient = new QueryClient();
 
@@ -26,15 +28,20 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="reservations" element={<ReservationsList />} />
-          <Route path="managers" element={<ManagersList />} /> */}
+
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard/reservations" element={<ReservationsList />} />
+          <Route path="/admin/dashboard/clients" element={<ClientsList />} />
+          <Route path="/admin/dashboard/managers" element={<ManagersList />} />
+          <Route path="/admin/dashboard/voitures" element={<VoitureList />} />
           <Route path="/" element={<Index />} />
           <Route path="/cars" element={<CarListings />} />
           <Route path="/cars/:id" element={<CarDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
+
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

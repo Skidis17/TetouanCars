@@ -1,0 +1,59 @@
+.calendarContainer {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.calendarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.calendarTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.fc {
+  font-family: inherit;
+}
+
+.fc-header-toolbar {
+  margin-bottom: 1em;
+}
+
+.fc-event {
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.85em;
+  padding: 2px 4px;
+}
+
+.fc-daygrid-event-dot {
+  margin-right: 4px;
+}
+
+.statusIndicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.pending {
+  background-color: #f59e0b;
+}
+
+.confirmed {
+  background-color: #10b981;
+}
+
+.cancelled {
+  background-color: #ef4444;
+}

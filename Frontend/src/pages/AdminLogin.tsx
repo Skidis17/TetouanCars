@@ -1,7 +1,6 @@
-// src/pages/AdminLogin.tsx
 import { useState } from "react";
-import { loginAdmin } from "../services/api";
-import { setAdmin } from "../utils/auth";
+import API from '../services/api'; // using API object now
+import { setAdmin } from "../utils/auth"; // fixed path
 import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
@@ -13,10 +12,10 @@ const AdminLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await loginAdmin(email, password);
+      const res = await API.loginAdmin(email, password); // using API object
       if (res.success) {
         setAdmin(res.admin);
-        navigate("/admin/dashboard"); // Redirige vers dashboard
+        navigate("/admin/dashboard");
       } else {
         setError("Email ou mot de passe incorrect.");
       }
