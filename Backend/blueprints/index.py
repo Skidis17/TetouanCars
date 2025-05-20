@@ -5,8 +5,8 @@ from flask import Blueprint, jsonify
 from flask import Blueprint, jsonify
 import json
 from bson import ObjectId
-from Backend.models.manager_model import Manager
-from Backend.db import mongo
+from models.manager_model import Manager
+from db import mongo
 
 app = Flask(__name__)
 CORS(app)

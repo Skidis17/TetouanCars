@@ -6,8 +6,8 @@ from flask import Flask, send_from_directory
 from config import Config
 import os
 
-from Backend.db import mongo
-from Backend.blueprints import admin, client, manager, reservation, cars, index
+from db import mongo
+from blueprints import admin, client, manager, reservation, cars, index
 
 def create_app():
     app = Flask(__name__)

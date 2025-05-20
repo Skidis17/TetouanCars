@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from Backend.db import mongo
+from db import mongo
 import bcrypt
 from bson import ObjectId
 from datetime import datetime

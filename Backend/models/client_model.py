@@ -1,6 +1,6 @@
 from datetime import datetime
 from bson import ObjectId
-from Backend.db import mongo
+from db import mongo
 
 class Client:
     def __init__(

@@ -1,6 +1,6 @@
 from datetime import datetime
 from bson import ObjectId
-from Backend.db import mongo
+from db import mongo
 from werkzeug.security import generate_password_hash
 
 class Manager:

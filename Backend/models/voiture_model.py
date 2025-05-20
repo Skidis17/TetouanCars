@@ -1,7 +1,7 @@
 from datetime import datetime
 from bson import ObjectId
 from flask_pymongo import PyMongo
-from Backend.db import mongo
+from db import mongo
 
 class Voiture:
     def __init__(

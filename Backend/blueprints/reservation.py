@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from Backend.db import mongo
+from db import mongo
 
 reservation_bp = Blueprint('reservation', __name__)
 

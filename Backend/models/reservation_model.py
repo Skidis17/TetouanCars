@@ -1,6 +1,6 @@
 from datetime import datetime
 from bson import ObjectId
-from Backend.db import mongo
+from db import mongo
 
 class Reservation:
     def __init__(

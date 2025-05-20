@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, session
 from flask_pymongo import PyMongo
-from Backend import mongo 
+from db import mongo 
 import bcrypt
 from functools import wraps
 from bson import ObjectId
