@@ -264,7 +264,7 @@ def calendar_reservations():
 
 
 # Clients list
-@manager_bp.route("/managers/clients", methods=["GET"])
+@manager_bp.route("/manager/clients", methods=["GET"])
 def get_clients():
     try:
         clients = list(mongo.db.clients.find({}, {
@@ -391,7 +391,7 @@ def add_car():
             "image": data.get("image", ""),
         }
 
-        result = mongo.db.cars.insert_one(car)
+        result = mongo.db.voitures.insert_one(car)
 
         car["_id"] = str(result.inserted_id)
         car["date_ajout"] = car["date_ajout"].isoformat()

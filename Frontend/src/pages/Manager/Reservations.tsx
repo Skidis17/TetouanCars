@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "../../services/managerApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -22,224 +22,252 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { Phone, Mail, Trash, Plus, Search } from "lucide-react";
 
+interface Client {
+  name: string;
+  email: string;
+  phone: string;
+}
+
+interface Car {
+  model: string;
+}
+
+interface Payment {
+  methode: string;
+  statut: string;
+}
+
+interface Reservation {
+  _id: string;
+  client?: Client; // Made optional
+  car?: Car; // Made optional
+  date_debut: string;
+  date_fin: string;
+  statut: string;
+  prix_total: number;
+  paiement: Payment;
+  date_reservation: string;
+}
+
 const Reservations = () => {
   const navigate = useNavigate();
-  const [reservations, setReservations] = useState([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedReservation, setSelectedReservation] = useState<any>(null);
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
-    if (!isAuthenticated) {
-      navigate("/manager/login");
-    }
+    if (!isAuthenticated) navigate("/manager/login");
 
-    // Fetch reservations from backend
-    const fetchReservations = async () => {
+    const loadData = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/manager/reservations");
-        setReservations(response.data);
+        const [reservationsData] = await Promise.all([
+          API.getReservations()
+        ]);
+        console.log("API Response:", reservationsData); // Debug log
+        setReservations(reservationsData || []); // Ensure array even if undefined
       } catch (error) {
-        console.error("Error fetching reservations:", error);
+        console.error("Error loading reservations:", error);
+        toast({
+          title: "Erreur de chargement",
+          description: "Échec du chargement des données",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchReservations();
+    loadData();
   }, [navigate]);
 
+  // Safe filtering with null checks
   const filteredReservations = reservations
-    .filter((reservation) => reservation.status === "en attente")
-    .filter(
-      (reservation) =>
-        reservation.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.carModel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.status.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    .filter((r) => r.statut === "en_attente")
+    .filter(r => {
+      const clientName = r.client?.name?.toLowerCase() || "";
+      const carModel = r.car?.model?.toLowerCase() || "";
+      return clientName.includes(searchTerm.toLowerCase()) || 
+             carModel.includes(searchTerm.toLowerCase());
+    });
 
-  const handleDelete = async (id: string) => {
+  const formatDate = (dateString: string) => {
     try {
-      await axios.delete(`http://localhost:5000/manager/reservations/${id}`);
-      setReservations(reservations.filter(res => res.id !== id));
+      return new Date(dateString).toLocaleDateString("fr-FR");
+    } catch {
+      return "N/A";
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedReservation) return;
+    try {
+      await API.deleteReservation(selectedReservation._id);
+      setReservations(reservations.filter(r => r._id !== selectedReservation._id));
       setDeleteDialogOpen(false);
+      toast({ title: "Réservation supprimée avec succès" });
+    } catch (error) {
+      console.error("Delete error:", error);
       toast({
-        title: "Reservation Deleted",
-        description: "The reservation has been successfully deleted",
+        title: "Erreur de suppression",
+        variant: "destructive"
       });
-    } catch (error) {
-      console.error("Error deleting reservation:", error);
     }
   };
 
-  const showDeleteDialog = (reservation: any) => {
-    setSelectedReservation(reservation);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleContact = (method: string, contact: string) => {
-    if (method === 'phone') {
-      window.location.href = `tel:${contact}`;
-    } else if (method === 'email') {
-      window.location.href = `mailto:${contact}`;
-    }
-  };
-
-  // Accept reservation
-  const handleAccept = async (id: string) => {
+  const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
-      await axios.patch(`http://localhost:5000/manager/reservations/${id}`, { status: "acceptee" });
-      setReservations(reservations.map(res => res.id === id ? { ...res, status: "acceptee" } : res));
-      toast({ title: "Réservation acceptee" });
+      await API.updateReservationStatus(id, newStatus);
+      setReservations(reservations.map(r => 
+        r._id === id ? { ...r, statut: newStatus } : r
+      ));
+      toast({ title: `Statut mis à jour: ${newStatus}` });
     } catch (error) {
-      toast({ title: "Erreur lors de l'acceptation", variant: "destructive" });
+      console.error("Status update error:", error);
+      toast({
+        title: "Erreur de mise à jour",
+        variant: "destructive"
+      });
     }
   };
 
-  // Refuse reservation
-  const handleRefuse = async (id: string) => {
+  const handlePaymentUpdate = async (id: string) => {
     try {
-      await axios.patch(`http://localhost:5000/manager/reservations/${id}`, { status: "refusée" });
-      setReservations(reservations.map(res => res.id === id ? { ...res, status: "refusée" } : res));
-      toast({ title: "Réservation refusée" });
+      const reservation = reservations.find(r => r._id === id);
+      if (!reservation) return;
+
+      const newStatus = reservation.paiement.statut === "payée" ? "non payée" : "payée";
+      await API.updatePaymentStatus(id, { 
+        ...reservation.paiement, 
+        statut: newStatus 
+      });
+
+      setReservations(reservations.map(r => 
+        r._id === id ? { 
+          ...r, 
+          paiement: { ...r.paiement, statut: newStatus } 
+        } : r
+      ));
+      toast({ title: `Paiement ${newStatus}` });
     } catch (error) {
-      toast({ title: "Erreur lors du refus", variant: "destructive" });
+      console.error("Payment update error:", error);
+      toast({
+        title: "Erreur de paiement",
+        variant: "destructive"
+      });
     }
   };
 
-  // Toggle payment status
-  const handleTogglePayment = async (id: string, currentStatus: string) => {
-    if (currentStatus === "payée") {
-      toast({ title: "Le paiement est déjà effectué", variant: "default" });
-      return;
-    }
-    try {
-      await axios.patch(`http://localhost:5000/manager/reservations/${id}`, { paymentStatus: "payée" });
-      setReservations(reservations.map(res => res.id === id ? { ...res, paymentStatus: "payée" } : res));
-      toast({ title: "Statut de paiement mis à jour" });
-    } catch (error) {
-      toast({ title: "Erreur lors de la mise à jour du paiement", variant: "destructive" });
-    }
-};
+  if (loading) {
+    return <div className="p-6 text-center">Chargement en cours...</div>;
+  }
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Reservations</h1>
+        <h1 className="text-3xl font-bold">Gestion des Réservations</h1>
         <Button onClick={() => navigate("/manager/add-reservation")}>
-          <Plus className="mr-2 h-4 w-4" /> Add Reservation
+          <Plus className="mr-2 h-4 w-4" /> Nouvelle
         </Button>
       </div>
-      
+
       <div className="flex items-center gap-2">
         <Search className="h-4 w-4 text-gray-500" />
         <Input
-          placeholder="Search by client, car, or status..."
+          placeholder="Rechercher..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
-        <Button variant="outline" onClick={() => navigate("/manager/calendar")}>
-          View Calendar
-        </Button>
       </div>
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Client</TableHead>
-              <TableHead>Car Model</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>End Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Payment Method</TableHead>
-              <TableHead>Payment Status</TableHead>
-              <TableHead>Reservation Date</TableHead>
-              <TableHead>Contact</TableHead>
+              <TableHead>Voiture</TableHead>
+              <TableHead>Début</TableHead>
+              <TableHead>Fin</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Montant</TableHead>
+              <TableHead>Paiement</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredReservations.map((reservation) => (
-              <TableRow key={reservation.id}>
-                <TableCell className="font-medium">{reservation.clientName}</TableCell>
-                <TableCell>{reservation.carModel}</TableCell>
-                <TableCell>{new Date(reservation.startDate).toLocaleDateString()}</TableCell>
-                <TableCell>{new Date(reservation.endDate).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    reservation.status === "acceptee"
-                      ? "bg-green-100 text-green-800"
-                      : reservation.status === "refusée"
-                      ? "bg-red-100 text-red-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {reservation.status}
-                  </span>
-                </TableCell>
-                <TableCell>${reservation.totalAmount}</TableCell>
-                <TableCell>{reservation.paymentMethod || "N/A"}</TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    variant={reservation.paymentStatus === "payée" ? "default" : "outline"}
-                    className={reservation.paymentStatus === "payée" ? "bg-green-100 text-green-800 border-green-300" : ""}
-                    onClick={() => handleTogglePayment(reservation.id, reservation.paymentStatus)}
-                    disabled={reservation.paymentStatus === "payée"}
-                  >
-                    {reservation.paymentStatus === "payée" ? "Payée" : "Non payée"}
-                  </Button>
-                </TableCell>
-                <TableCell>{new Date(reservation.reservationDate).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleContact('phone', reservation.clientPhone)}
-                      title="Call client"
-                    >
-                      <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleContact('email', reservation.clientEmail)}
-                      title="Email client"
-                    >
-                      <Mail className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="bg-green-100 text-green-800 border-green-300 hover:bg-green-200"
-                    onClick={() => handleAccept(reservation.id)}
-                  >
-                    Accepter
-                  </Button>
+            {filteredReservations.length > 0 ? (
+              filteredReservations.map((reservation) => (
+                <TableRow key={reservation._id}>
+                  <TableCell>
+                    <div className="font-medium">{reservation.client?.name || "N/A"}</div>
+                    <div className="text-sm text-gray-500">
+                      {reservation.client?.phone || "N/A"}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{reservation.car?.model || "N/A"}</div>
+                  </TableCell>
+                  <TableCell>{formatDate(reservation.date_debut)}</TableCell>
+                  <TableCell>{formatDate(reservation.date_fin)}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      reservation.statut === "acceptée" ? "bg-green-100 text-green-800" :
+                      reservation.statut === "refusée" ? "bg-red-100 text-red-800" :
+                      "bg-yellow-100 text-yellow-800"
+                    }`}>
+                      {reservation.statut}
+                    </span>
+                  </TableCell>
+                  <TableCell>{reservation.prix_total} DH</TableCell>
+                  <TableCell>
                     <Button
                       size="sm"
-                      variant="destructive"
-                      onClick={() => handleRefuse(reservation.id)}
+                      variant={reservation.paiement.statut === "payée" ? "default" : "outline"}
+                      onClick={() => handlePaymentUpdate(reservation._id)}
                     >
-                      Refuser
+                      {reservation.paiement.statut}
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => showDeleteDialog(reservation)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-green-100 text-green-800 hover:bg-green-200"
+                        onClick={() => handleStatusUpdate(reservation._id, "acceptée")}
+                      >
+                        Accepter
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleStatusUpdate(reservation._id, "refusée")}
+                      >
+                        Refuser
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedReservation(reservation);
+                          setDeleteDialogOpen(true);
+                        }}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-4">
+                  Aucune réservation en attente trouvée
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </div>
@@ -247,21 +275,17 @@ const Reservations = () => {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>Confirmer suppression</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete the reservation for{" "}
-              {selectedReservation?.clientName}? This action cannot be undone.
+              Supprimer la réservation de {selectedReservation?.client?.name || "ce client"}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
+              Annuler
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={() => handleDelete(selectedReservation?.id)}
-            >
-              Delete
+            <Button variant="destructive" onClick={handleDelete}>
+              Confirmer
             </Button>
           </DialogFooter>
         </DialogContent>

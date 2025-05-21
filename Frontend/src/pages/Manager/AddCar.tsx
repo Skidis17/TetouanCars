@@ -56,7 +56,7 @@ const AddCar: React.FC = () => {
           : [],
       });
       toast({ title: "Voiture ajoutée avec succès" });
-      navigate("/manager/CarsList");
+      navigate("/manager/carsList");
     } catch (error: any) {
       toast({
         variant: "destructive",
