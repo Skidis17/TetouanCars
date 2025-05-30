@@ -1,10 +1,18 @@
 .dialogContent {
+  background: white;
   padding: 2rem;
-  max-width: 600px;
-  width: 100%;
+  max-width: 800px;
+  width: 90%;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  margin: 2rem auto;
 }
 
 .dialogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
 }
 
@@ -12,17 +20,26 @@
   font-size: 1.5rem;
   font-weight: 600;
   color: #111827;
+  margin: 0;
 }
 
 .section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .sectionTitle {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-weight: 500;
   color: #374151;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .infoGrid {
@@ -35,30 +52,78 @@
   background: #f9fafb;
   padding: 1rem;
   border-radius: 8px;
+  border: 1px solid #e5e7eb;
 }
 
 .infoLabel {
   font-size: 0.875rem;
   color: #6b7280;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .infoValue {
   font-weight: 500;
   color: #111827;
+  font-size: 1rem;
 }
 
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
+  padding: 0.5rem 1rem;
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
 }
 
+.statusPending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.statusAccepted {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.statusRejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.statusCancelled {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.statusCompleted {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
 .actionButtons {
   display: flex;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  gap: 1rem;
+  margin-top: 2rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 640px) {
+  .dialogContent {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 1rem auto;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .actionButtons button {
+    width: 100%;
+  }
 }

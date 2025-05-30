@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
+
 import Dashboard from "./pages/Manager/Dashboard";
 import Login from "./pages/Manager/Login";
 import Reservations from "./pages/Manager/Reservations";
@@ -24,12 +24,10 @@ import EditCar from "@/pages/Manager/EditCar";
 import AddCar from "@/pages/Manager/AddCar";
 import ReservationsHistory from "@/pages/Manager/ReservationsHistory";
 
-
 import AdminLogin from "./pages/Admin/AdminLogin";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import ReservationsList from "./components/Admin/ReservationsList";
 import ManagersList from "./components/Admin/ManagersList";
-import { Outlet } from "react-router-dom";
 import ClientsList from "./components/Admin/ClientsList";
 import VoitureList from "./components/Admin/VoitureList";
 
@@ -42,23 +40,23 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-
+          {/* Routes Admin */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/dashboard/reservations" element={<ReservationsList />} />
-          <Route path="/admin/dashboard/clients" element={<ClientsList />} />
-          <Route path="/admin/dashboard/managers" element={<ManagersList />} />
-          <Route path="/admin/dashboard/voitures" element={<VoitureList />} />
+          <Route path="/admin/reservations" element={<ReservationsList />} />
+          <Route path="/admin/clients" element={<ClientsList />} />
+          <Route path="/admin/managers" element={<ManagersList />} />
+          <Route path="/admin/voitures" element={<VoitureList />} />
+
+          {/* Routes Public */}
           <Route path="/" element={<Index />} />
           <Route path="/cars" element={<CarListings />} />
           <Route path="/cars/:id" element={<CarDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="*" element={<NotFound />} />
           
-      
+          {/* Routes Manager */}
           <Route path="/manager/login" element={<Login />} />
-          
           <Route path="/manager/dashboard" element={ 
             <ProtectedRoute>
               <Layout>
@@ -66,7 +64,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-
           <Route path="/manager/reservations" element={
             <ProtectedRoute>
               <Layout>
@@ -74,15 +71,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-
-          {/* <Route path="/manager/edit-reservation/:id" element={
-            <ProtectedRoute>
-              <Layout>
-                <EditReservation />
-              </Layout>
-            </ProtectedRoute>
-          } /> */}
-          
           <Route path="/manager/add-reservation" element={
             <ProtectedRoute>
               <Layout>
@@ -90,7 +78,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-          
           <Route path="/manager/calendar" element={
             <ProtectedRoute>
               <Layout>
@@ -98,7 +85,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-
           <Route path="/manager/clients" element={
             <ProtectedRoute>
               <Layout>
@@ -106,7 +92,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-
           <Route path="/manager/carsList" element={
             <ProtectedRoute>
               <Layout>
@@ -114,7 +99,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-
           <Route path="/manager/cars/edit/:id" element={
             <ProtectedRoute>
               <Layout>
@@ -122,7 +106,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-
           <Route path="/manager/cars/add" element={
             <ProtectedRoute>
               <Layout>
@@ -130,7 +113,6 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-
           <Route path="/manager/reservations-history" element={
             <ProtectedRoute>
               <Layout>
@@ -138,10 +120,9 @@ const App = () => (
               </Layout>
             </ProtectedRoute>
           } />
-          
-          <Route path="/" element={<Navigate to="/manager/login" replace />} />
-          <Route path="*" element={<NotFound />} />
 
+          {/* Route par défaut */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
