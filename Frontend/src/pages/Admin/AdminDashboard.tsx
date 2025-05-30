@@ -2,8 +2,8 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import styles from "../../components/Admin/AdminDashboard.module.css";
+import API from "../../services/api";
 
-// Type pour les statistiques
 type Statistic = {
   title: string;
   value: number | string;
@@ -16,25 +16,22 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState<Statistic[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Simuler le chargement des statistiques
   useEffect(() => {
     const fetchStats = async () => {
-      // En production, vous feriez une requête API ici
-      setTimeout(() => {
-        setStats([
-          { title: "Réservations ce mois", value: 42, change: 12 },
-          { title: "Clients actifs", value: 156, change: -3 },
-          { title: "Voitures disponibles", value: 28, change: 5 },
-          { title: "Revenus (MAD)", value: "84,500", change: 18 },
-        ]);
+      try {
+        const statsData = await API.getAdminDashboardStats();
+        console.log("Fetched stats:", statsData); // For debugging
+        setStats(statsData);
+      } catch (error) {
+        console.error("Failed to load dashboard stats:", error);
+      } finally {
         setLoading(false);
-      }, 800);
+      }
     };
 
     fetchStats();
   }, []);
 
-  // Vérifie si le lien est actif
   const isActive = (path: string) => {
     return location.pathname === `/admin/${path}` || 
            location.pathname.startsWith(`/admin/${path}/`);
@@ -42,7 +39,7 @@ const AdminDashboard = () => {
 
   return (
     <div className={styles.dashboardContainer}>
-      {/* Sidebar */}
+      {/* Sidebar - unchanged */}
       <div className={styles.sidebar}>
         <div className={styles.sidebarHeader}>TetouanCars Admin</div>
         <nav>
@@ -75,7 +72,7 @@ const AdminDashboard = () => {
 
       {/* Main Content */}
       <div className={styles.mainContent}>
-        {/* Header */}
+        {/* Header - unchanged */}
         <header className={styles.header}>
           <h2 className={styles.headerTitle}>Tableau de bord</h2>
           <div className={styles.userProfile}>
@@ -84,31 +81,57 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        {/* Content Area */}
+        {/* SIMPLIFIED STATS DISPLAY */}
         <main className={styles.contentArea}>
-          {/* Afficher les statistiques seulement sur la page d'accueil */}
-          {location.pathname === "/admin" && (
-            <div className={styles.statsContainer}>
-              {stats.map((stat, index) => (
-                <div 
-                  key={stat.title} 
-                  className={`${styles.statCard} ${styles.animatedCard} ${styles[`delay${index + 1}`]}`}
-                >
-                  <div className={styles.statTitle}>{stat.title}</div>
-                  <div className={styles.statValue}>{stat.value}</div>
-                  {stat.change && (
-                    <div className={`${styles.statChange} ${
-                      (stat.change || 0) >= 0 ? styles.changePositive : styles.changeNegative
-                    }`}>
-                      {stat.change >= 0 ? "↑" : "↓"} {Math.abs(stat.change)}% 
-                      {stat.change >= 0 ? " vs mois dernier" : " vs mois dernier"}
+          
+            <div style={{ marginBottom: '20px' }}>
+              <h3>Statistiques</h3>
+              <div style={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: '20px',
+                marginBottom: '20px'
+              }}>
+                {stats.map((stat, index) => (
+                  <div 
+                    key={stat.title} 
+                    style={{
+                      background: 'white',
+                      padding: '15px',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                      minWidth: '200px',
+                      flex: 1
+                    }}
+                  >
+                    <div style={{ 
+                      fontSize: '14px', 
+                      color: '#666',
+                      marginBottom: '5px'
+                    }}>
+                      {stat.title}
                     </div>
-                  )}
-                </div>
-              ))}
+                    <div style={{ 
+                      fontSize: '24px', 
+                      fontWeight: 'bold' 
+                    }}>
+                      {stat.value}
+                    </div>
+                    {stat.change !== undefined && (
+                      <div style={{ 
+                        color: stat.change >= 0 ? 'green' : 'red',
+                        marginTop: '5px',
+                        fontSize: '14px'
+                      }}>
+                        {stat.change >= 0 ? "↑" : "↓"} {Math.abs(stat.change)}% 
+                        vs mois dernier
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
-
+          
           <div className={styles.contentCard}>
             <Outlet />
           </div>
