@@ -87,7 +87,7 @@ const AdminDashboard = () => {
         {/* Content Area */}
         <main className={styles.contentArea}>
           {/* Afficher les statistiques seulement sur la page d'accueil */}
-          {location.pathname === "/admin" && (
+          {location.pathname === "/admin/dashboard" && (
             <div className={styles.statsContainer}>
               {stats.map((stat, index) => (
                 <div 

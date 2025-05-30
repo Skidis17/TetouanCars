@@ -166,11 +166,31 @@ def get_reservations():
     reservations = list(mongo.db.reservations.find())
     for res in reservations:
         res['_id'] = str(res['_id'])
-        res['client_id'] = str(res.get('client_id', ''))
-        res['voiture_id'] = str(res.get('voiture_id', ''))
-        res['manager_createur_id'] = str(res.get('manager_createur_id', ''))
-        res['manager_traiteur_id'] = str(res.get('manager_traiteur_id', ''))
-        
+
+        # Fetch client details
+        if 'client_id' in res:
+            client = mongo.db.clients.find_one({"_id": ObjectId(res['client_id'])})
+            if client:
+                res['client_id'] = {
+                    "_id": str(client['_id']),
+                    "nom": client.get('nom', ''),
+                    "prenom": client.get('prenom', '')
+                }
+            else:
+                res['client_id'] = None
+
+        # Fetch vehicle details
+        if 'voiture_id' in res:
+            voiture = mongo.db.voitures.find_one({"_id": ObjectId(res['voiture_id'])})
+            if voiture:
+                res['voiture_id'] = {
+                    "_id": str(voiture['_id']),
+                    "marque": voiture.get('marque', ''),
+                    "modele": voiture.get('modele', '')
+                }
+            else:
+                res['voiture_id'] = None
+
         # Convert string dates to ISO format
         res['date_debut'] = (
             datetime.strptime(res['date_debut'], "%Y-%m-%d").isoformat()

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar, Car, FileText, LogOut, Menu, User, X, ClipboardList, LayoutDashboard, History} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Outlet } from "react-router-dom";
 
 const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
