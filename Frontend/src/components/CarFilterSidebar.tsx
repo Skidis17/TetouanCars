@@ -89,8 +89,8 @@ const CarFilterSidebar = ({ onFilterChange }: CarFilterSidebarProps) => {
             className="mb-4"
           />
           <div className="flex justify-between text-sm text-gray-600">
-            <span>{priceRange[0]}Dh</span>
-            <span>{priceRange[1]}Dh</span>
+            <span>{priceRange[0]}MAD</span>
+            <span>{priceRange[1]}MAD</span>
           </div>
         </div>
       </div>

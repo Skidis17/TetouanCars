@@ -12,7 +12,7 @@ def create_app():
     app.config.from_object(Config)
     
     # Initialize the PyMongo with the app
-    mongo.init_app(app)
+    mongo.init_app(app) 
 
     # Import the routes and register them
     # from routes import auth, car

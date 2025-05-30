@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 
 export type PaymentMethod = 'carte' | 'en especes' | 'par cheque';
-export type PaymentStatus = 'payee' | 'non payee';
-export type ReservationStatus = 'en_attente' | 'acceptee' | 'refusee' | 'reservee';
+export type PaymentStatus = 'payée' | 'non payée';
+export type ReservationStatus = 'en attente' | 'acceptée' | 'refusee' | 'reservee';
 
 export interface Payment {
   methode: PaymentMethod;

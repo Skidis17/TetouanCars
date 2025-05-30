@@ -10,8 +10,8 @@ export const getReservations = async () => {
   return response.data;
 };
 
-export const updateReservationStatus = async (id: string, status: string) => {
-  const response = await axios.patch(`${API_URL}manager/reservations/${id}`, { statut: status });
+export const updateReservationStatus = async (id: string, data: { [key: string]: any }) => {
+  const response = await axios.patch(`${API_URL}manager/reservations/${id}`, data);
   return response.data;
 };
 

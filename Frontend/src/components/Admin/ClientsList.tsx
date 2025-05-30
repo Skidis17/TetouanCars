@@ -7,6 +7,10 @@ import {
   FiChevronLeft, FiChevronRight
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { Client } from "../../types/clientTypes";
+import AdminLayout from "../../components/AdminLayout";
+import { Search, X, Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, Filter } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Adresse {
   rue: string;
@@ -275,262 +279,266 @@ const ClientsList = () => {
   };
 
   return (
-    <div className={styles.dashboardCard}>
-      <div className={styles.header}>
-        <div className={styles.headerText}>
-          <h1 className={styles.title}>Gestion des Clients</h1>
-          <p className={styles.subtitle}>Explorez et gérez votre base de clients</p>
-        </div>
-        <div className={styles.viewToggle}>
-          <button 
-            onClick={() => setViewMode('table')} 
-            className={`${styles.viewButton} ${viewMode === 'table' ? styles.active : ''}`}
-          >
-            <FiList /> Tableau
-          </button>
-          <button 
-            onClick={() => setViewMode('card')} 
-            className={`${styles.viewButton} ${viewMode === 'card' ? styles.active : ''}`}
-          >
-            <FiGrid /> Cartes
-          </button>
-        </div>
-      </div>
+    <AdminLayout>
+      <div className="p-6">
+        <div className={styles.dashboardCard}>
+          <div className={styles.header}>
+            <div className={styles.headerText}>
+              <h1 className={styles.title}>Gestion des Clients</h1>
+             
+            </div>
+            <div className={styles.viewToggle}>
+              <button 
+                onClick={() => setViewMode('table')} 
+                className={`${styles.viewButton} ${viewMode === 'table' ? styles.active : ''}`}
+              >
+                <FiList /> Tableau
+              </button>
+              <button 
+                onClick={() => setViewMode('card')} 
+                className={`${styles.viewButton} ${viewMode === 'card' ? styles.active : ''}`}
+              >
+                <FiGrid /> Cartes
+              </button>
+            </div>
+          </div>
 
-      <div className={styles.controlBar}>
-        <div className={styles.searchContainer}>
-          <FiSearch className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder="Rechercher un client..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-          {searchTerm && (
-            <button 
-              onClick={() => setSearchTerm("")} 
-              className={styles.clearButton}
-            >
-              <FiX />
-            </button>
-          )}
-        </div>
-
-        <div className={styles.controlButtons}>
-          <button 
-            onClick={() => setFiltersOpen(!filtersOpen)}
-            className={`${styles.filterButton} ${filtersOpen ? styles.active : ''}`}
-          >
-            <FiFilter /> Filtres
-          </button>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {filtersOpen && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className={styles.filtersPanel}
-          >
-            <div className={styles.filterGrid}>
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>
-                  <FiMapPin /> Ville
-                </label>
-                <input
-                  type="text"
-                  value={filters.ville}
-                  onChange={(e) => setFilters({...filters, ville: e.target.value})}
-                  placeholder="Toutes les villes"
-                  className={styles.filterInput}
-                />
-              </div>
-
-              <div className={styles.filterGroup}>
-                <label className={styles.filterLabel}>
-                  <FiUser /> Type de permis
-                </label>
-                <select
-                  value={filters.permis}
-                  onChange={(e) => setFilters({...filters, permis: e.target.value})}
-                  className={styles.filterInput}
-                >
-                  <option value="">Tous les permis</option>
-                  <option value="B">Permis B</option>
-                  <option value="C">Permis C</option>
-                  <option value="D">Permis D</option>
-                  <option value="EB">Permis EB</option>
-                  <option value="EC">Permis EC</option>
-                  <option value="ED">Permis ED</option>
-                </select>
-              </div>
-
-              <DateRangeFilter
-                startDate={filters.dateStart}
-                endDate={filters.dateEnd}
-                onStartDateChange={(date) => setFilters({...filters, dateStart: date})}
-                onEndDateChange={(date) => setFilters({...filters, dateEnd: date})}
+          <div className={styles.controlBar}>
+            <div className={styles.searchContainer}>
+              <FiSearch className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Rechercher un client..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
               />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm("")} 
+                  className={styles.clearButton}
+                >
+                  <FiX />
+                </button>
+              )}
             </div>
 
-            <div className={styles.filterActions}>
-              <button onClick={resetFilters} className={styles.resetButton}>
-                <FiX /> Réinitialiser
-              </button>
-              <button onClick={() => setFiltersOpen(false)} className={styles.applyButton}>
-                Appliquer
+            <div className={styles.controlButtons}>
+              <button 
+                onClick={() => setFiltersOpen(!filtersOpen)}
+                className={`${styles.filterButton} ${filtersOpen ? styles.active : ''}`}
+              >
+                <FiFilter /> Filtres
               </button>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
 
-      <div className={styles.resultsHeader}>
-        <span className={styles.resultsCount}>
-          {filteredClients.length} {filteredClients.length === 1 ? 'client' : 'clients'} trouvés
-        </span>
+          <AnimatePresence>
+            {filtersOpen && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className={styles.filtersPanel}
+              >
+                <div className={styles.filterGrid}>
+                  <div className={styles.filterGroup}>
+                    <label className={styles.filterLabel}>
+                      <FiMapPin /> Ville
+                    </label>
+                    <input
+                      type="text"
+                      value={filters.ville}
+                      onChange={(e) => setFilters({...filters, ville: e.target.value})}
+                      placeholder="Toutes les villes"
+                      className={styles.filterInput}
+                    />
+                  </div>
 
-      </div>
-
-      {loading ? (
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Chargement des clients...</p>
-        </div>
-      ) : filteredClients.length > 0 ? (
-        <>
-          {viewMode === 'table' ? (
-            <div className={styles.tableContainer}>
-              <table className={styles.clientsTable}>
-                <thead>
-                  <tr>
-                    <th className={styles.nameColumn}>Client</th>
-                    <th className={styles.contactColumn}>Contact</th>
-                    <th className={styles.locationColumn}>Localisation</th>
-                    <th className={styles.licenseColumn}>Permis</th>
-                    <th className={styles.dateColumn}>Inscription</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedClients.map((client) => (
-                    <motion.tr 
-                      key={client._id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                      className={styles.clientRow}
+                  <div className={styles.filterGroup}>
+                    <label className={styles.filterLabel}>
+                      <FiUser /> Type de permis
+                    </label>
+                    <select
+                      value={filters.permis}
+                      onChange={(e) => setFilters({...filters, permis: e.target.value})}
+                      className={styles.filterInput}
                     >
-                      <td>
-                        <div className={styles.clientInfo}>
-                          {renderAvatar(client)}
-                          <div>
-                            <p className={styles.clientName}>{client.prenom} {client.nom}</p>
-                            <p className={styles.clientCIN}>CIN: {client.CIN}</p>
-                          </div>
+                      <option value="">Tous les permis</option>
+                      <option value="B">Permis B</option>
+                      <option value="C">Permis C</option>
+                      <option value="D">Permis D</option>
+                      <option value="EB">Permis EB</option>
+                      <option value="EC">Permis EC</option>
+                      <option value="ED">Permis ED</option>
+                    </select>
+                  </div>
+
+                  <DateRangeFilter
+                    startDate={filters.dateStart}
+                    endDate={filters.dateEnd}
+                    onStartDateChange={(date) => setFilters({...filters, dateStart: date})}
+                    onEndDateChange={(date) => setFilters({...filters, dateEnd: date})}
+                  />
+                </div>
+
+                <div className={styles.filterActions}>
+                  <button onClick={resetFilters} className={styles.resetButton}>
+                    <FiX /> Réinitialiser
+                  </button>
+                  <button onClick={() => setFiltersOpen(false)} className={styles.applyButton}>
+                    Appliquer
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className={styles.resultsHeader}>
+            <span className={styles.resultsCount}>
+              {filteredClients.length} {filteredClients.length === 1 ? 'client' : 'clients'} trouvés
+            </span>
+
+          </div>
+
+          {loading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.spinner}></div>
+              <p>Chargement des clients...</p>
+            </div>
+          ) : filteredClients.length > 0 ? (
+            <>
+              {viewMode === 'table' ? (
+                <div className={styles.tableContainer}>
+                  <table className={styles.clientsTable}>
+                    <thead>
+                      <tr>
+                        <th className={styles.nameColumn}>Client</th>
+                        <th className={styles.contactColumn}>Contact</th>
+                        <th className={styles.locationColumn}>Localisation</th>
+                        <th className={styles.licenseColumn}>Permis</th>
+                        <th className={styles.dateColumn}>Inscription</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedClients.map((client) => (
+                        <motion.tr 
+                          key={client._id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                          className={styles.clientRow}
+                        >
+                          <td>
+                            <div className={styles.clientInfo}>
+                              {renderAvatar(client)}
+                              <div>
+                                <p className={styles.clientName}>{client.prenom} {client.nom}</p>
+                                <p className={styles.clientCIN}>CIN: {client.CIN}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className={styles.contactInfo}>
+                              <a href={`mailto:${client.email}`} className={styles.contactItem}>
+                                <FiMail /> {client.email}
+                              </a>
+                              <a href={`tel:${client.telephone}`} className={styles.contactItem}>
+                                <FiPhone /> {client.telephone}
+                              </a>
+                            </div>
+                          </td>
+                          <td>
+                            <div className={styles.locationInfo}>
+                              <FiMapPin /> {client.adresse.ville}, {client.adresse.code_postal}
+                            </div>
+                          </td>
+                          <td>
+                            <div className={styles.licenseInfo}>
+                              <span className={styles.licenseBadge}>
+                                {client.permis_conduire}
+                              </span>
+                              <small>Exp: {new Date(client.date_expiration).toLocaleDateString('fr-FR')}</small>
+                            </div>
+                          </td>
+                          <td>
+                            {new Date(client.date_ajout).toLocaleDateString('fr-FR', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className={styles.cardsContainer}>
+                  {paginatedClients.map((client) => (
+                    <motion.div 
+                      key={client._id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                      className={styles.clientCard}
+                    >
+                      <div className={styles.cardHeader}>
+                        {renderAvatar(client)}
+                        <div className={styles.cardTitle}>
+                          <h3>{client.prenom} {client.nom}</h3>
+                          <p>CIN: {client.CIN}</p>
                         </div>
-                      </td>
-                      <td>
-                        <div className={styles.contactInfo}>
-                          <a href={`mailto:${client.email}`} className={styles.contactItem}>
-                            <FiMail /> {client.email}
-                          </a>
-                          <a href={`tel:${client.telephone}`} className={styles.contactItem}>
-                            <FiPhone /> {client.telephone}
-                          </a>
+                      </div>
+                      <div className={styles.cardBody}>
+                        <div className={styles.cardField}>
+                          <FiMail /> {client.email}
                         </div>
-                      </td>
-                      <td>
-                        <div className={styles.locationInfo}>
+                        <div className={styles.cardField}>
+                          <FiPhone /> {client.telephone}
+                        </div>
+                        <div className={styles.cardField}>
                           <FiMapPin /> {client.adresse.ville}, {client.adresse.code_postal}
                         </div>
-                      </td>
-                      <td>
-                        <div className={styles.licenseInfo}>
-                          <span className={styles.licenseBadge}>
-                            {client.permis_conduire}
-                          </span>
-                          <small>Exp: {new Date(client.date_expiration).toLocaleDateString('fr-FR')}</small>
+                        <div className={styles.cardDetails}>
+                          <div>
+                            <label>Permis</label>
+                            <span className={styles.licenseBadge}>
+                              {client.permis_conduire}
+                            </span>
+                          </div>
+                          <div>
+                            <label>Expiration</label>
+                            <span>{new Date(client.date_expiration).toLocaleDateString('fr-FR')}</span>
+                          </div>
                         </div>
-                      </td>
-                      <td>
-                        {new Date(client.date_ajout).toLocaleDateString('fr-FR', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className={styles.cardsContainer}>
-              {paginatedClients.map((client) => (
-                <motion.div 
-                  key={client._id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                  className={styles.clientCard}
-                >
-                  <div className={styles.cardHeader}>
-                    {renderAvatar(client)}
-                    <div className={styles.cardTitle}>
-                      <h3>{client.prenom} {client.nom}</h3>
-                      <p>CIN: {client.CIN}</p>
-                    </div>
-                  </div>
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardField}>
-                      <FiMail /> {client.email}
-                    </div>
-                    <div className={styles.cardField}>
-                      <FiPhone /> {client.telephone}
-                    </div>
-                    <div className={styles.cardField}>
-                      <FiMapPin /> {client.adresse.ville}, {client.adresse.code_postal}
-                    </div>
-                    <div className={styles.cardDetails}>
-                      <div>
-                        <label>Permis</label>
-                        <span className={styles.licenseBadge}>
-                          {client.permis_conduire}
+                      </div>
+                      <div className={styles.cardFooter}>
+                        <span>
+                          Inscrit le {new Date(client.date_ajout).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
-                      <div>
-                        <label>Expiration</label>
-                        <span>{new Date(client.date_expiration).toLocaleDateString('fr-FR')}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={styles.cardFooter}>
-                    <span>
-                      Inscrit le {new Date(client.date_ajout).toLocaleDateString('fr-FR')}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {renderPagination()}
+            </>
+          ) : (
+            <div className={styles.emptyState}>
+              <FiUser className={styles.emptyIcon} />
+              <h3>Aucun client trouvé</h3>
+              <p>Modifiez vos critères de recherche ou réinitialisez les filtres</p>
+              <button onClick={resetFilters} className={styles.resetAction}>
+                Réinitialiser la recherche
+              </button>
             </div>
           )}
-
-          {renderPagination()}
-        </>
-      ) : (
-        <div className={styles.emptyState}>
-          <FiUser className={styles.emptyIcon} />
-          <h3>Aucun client trouvé</h3>
-          <p>Modifiez vos critères de recherche ou réinitialisez les filtres</p>
-          <button onClick={resetFilters} className={styles.resetAction}>
-            Réinitialiser la recherche
-          </button>
         </div>
-      )}
-    </div>
+      </div>
+    </AdminLayout>
   );
 };
 

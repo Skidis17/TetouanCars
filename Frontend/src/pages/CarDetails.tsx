@@ -75,7 +75,7 @@ const CarDetails = () => {
   //   // const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   //   // const totalPrice = currentCar ? currentCar.prix_journalier * diffDays : 0;
     
-  //   // toast.success(`Réservation possible pour ${diffDays} jours. Coût total estimé: ${totalPrice}€`);
+  //   // toast.success(`Réservation possible pour ${diffDays} jours. Coût total estimé: ${totalPrice}MAD`);
   // };
 
   const getManager = (carId: string) => {

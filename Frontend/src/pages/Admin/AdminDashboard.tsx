@@ -47,25 +47,25 @@ const AdminDashboard = () => {
         <div className={styles.sidebarHeader}>TetouanCars Admin</div>
         <nav>
           <Link
-            to="reservations"
+            to="/admin/reservations"
             className={`${styles.navLink} ${isActive("reservations") ? styles.navLinkActive : ""}`}
           >
             Réservations
           </Link>
           <Link
-            to="clients"
+            to="/admin/clients"
             className={`${styles.navLink} ${isActive("clients") ? styles.navLinkActive : ""}`}
           >
             Clients
           </Link>
           <Link
-            to="managers"
+            to="/admin/managers"
             className={`${styles.navLink} ${isActive("managers") ? styles.navLinkActive : ""}`}
           >
             Managers
           </Link>
           <Link
-            to="voitures"
+            to="/admin/voitures"
             className={`${styles.navLink} ${isActive("voitures") ? styles.navLinkActive : ""}`}
           >
             Voitures

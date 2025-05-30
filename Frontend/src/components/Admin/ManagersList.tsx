@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Manager } from "../../types/manager"; // correct
 import API from "../../services/api"; // API usage
-
+import AdminLayout from "../../components/AdminLayout";
 import { Search, X, Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -266,412 +266,416 @@ const ManagersList = () => {
   };
 
   return (
-    <div className="managers-container">
-      <div className="managers-header">
-        <div>
-          <h1 className="managers-title">Gestion des Managers</h1>
-          <p className="managers-subtitle">Liste complète des managers enregistrés</p>
-        </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="add-button"
-        >
-          <Plus size={18} />
-          <span>Ajouter un Manager</span>
-        </button>
-      </div>
-
-      {/* Barre de recherche et filtres */}
-      <div className="search-filter-container">
-        <div className="search-bar">
-          <Search className="search-icon" size={18} />
-          <input
-            type="text"
-            placeholder="Rechercher par nom, prénom, email ou téléphone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          {searchTerm && (
-            <button className="clear-search" onClick={() => setSearchTerm("")}>
-              <X size={16} />
-            </button>
-          )}
-        </div>
-
-        <div className="filter-section">
-          <button 
-            className={`filter-toggle-button ${showFilters ? 'active' : ''}`}
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter size={16} />
-            <span>Filtres</span>
-            {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-
-          {showFilters && (
-            <div className="filter-dropdown">
-              <div className="filter-group">
-                <label className="filter-label">Statut :</label>
-                <div className="filter-options">
-                  <button 
-                    className={`filter-option ${statusFilter === "tous" ? "selected" : ""}`}
-                    onClick={() => setStatusFilter("tous")}
-                  >
-                    Tous
-                  </button>
-                  <button 
-                    className={`filter-option ${statusFilter === "actif" ? "selected" : ""}`}
-                    onClick={() => setStatusFilter("actif")}
-                  >
-                    Actifs
-                  </button>
-                  <button 
-                    className={`filter-option ${statusFilter === "inactif" ? "selected" : ""}`}
-                    onClick={() => setStatusFilter("inactif")}
-                  >
-                    Inactifs
-                  </button>
-                </div>
-              </div>
-
-              <button className="reset-filters" onClick={resetFilters}>
-                Réinitialiser les filtres
-              </button>
+    <AdminLayout>
+      <div className="p-6">
+        <div className="managers-container">
+          <div className="managers-header">
+            <div>
+              <h1 className="managers-title">Gestion des Managers</h1>
+             
             </div>
-          )}
-        </div>
-      </div>
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="add-button"
+            >
+              <Plus size={18} />
+              <span>Ajouter un Manager</span>
+            </button>
+          </div>
 
-      {/* Liste des managers */}
-      {loading ? (
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Chargement des managers...</p>
-        </div>
-      ) : filteredManagers.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <h3>Aucun manager trouvé</h3>
-          <p>Modifiez vos filtres ou ajoutez un nouveau manager</p>
-        </div>
-      ) : (
-        <div className="managers-table-container">
-          <table className="managers-table">
-            <thead>
-              <tr>
-                <th onClick={() => requestSort('nom')}>
-                  <div className="th-content">
-                    Nom
-                    {sortConfig?.key === 'nom' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th onClick={() => requestSort('prenom')}>
-                  <div className="th-content">
-                    Prénom
-                    {sortConfig?.key === 'prenom' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th onClick={() => requestSort('email')}>
-                  <div className="th-content">
-                    Email
-                    {sortConfig?.key === 'email' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th>
-                  <div className="th-content">Téléphone</div>
-                </th>
-                <th onClick={() => requestSort('date_creation')}>
-                  <div className="th-content">
-                    Date création
-                    {sortConfig?.key === 'date_creation' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th onClick={() => requestSort('statut')}>
-                  <div className="th-content">
-                    Statut
-                    {sortConfig?.key === 'statut' && (
-                      sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
-                    )}
-                  </div>
-                </th>
-                <th>
-                  <div className="th-content">Actions</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredManagers.map((manager) => (
-                <tr key={manager._id} className="table-row">
-                  <td>{manager.nom}</td>
-                  <td>{manager.prenom}</td>
-                  <td>{manager.email}</td>
-                  <td>{manager.telephone}</td>
-                  <td>{formatDate(manager.date_creation)}</td>
-                  <td>
-                    <span className={`status-badge ${manager.statut === 'actif' ? 'active' : 'inactive'}`}>
-                      {manager.statut === 'actif' ? (
-                        <>
-                          <Check size={12} />
-                          <span>Actif</span>
-                        </>
-                      ) : (
-                        <>
-                          <X size={12} />
-                          <span>Inactif</span>
-                        </>
-                      )}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="actions-container">
+          {/* Barre de recherche et filtres */}
+          <div className="search-filter-container">
+            <div className="search-bar">
+              <Search className="search-icon" size={18} />
+              <input
+                type="text"
+                placeholder="Rechercher par nom, prénom, email ou téléphone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button className="clear-search" onClick={() => setSearchTerm("")}>
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+
+            <div className="filter-section">
+              <button 
+                className={`filter-toggle-button ${showFilters ? 'active' : ''}`}
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter size={16} />
+                <span>Filtres</span>
+                {showFilters ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {showFilters && (
+                <div className="filter-dropdown">
+                  <div className="filter-group">
+                    <label className="filter-label">Statut :</label>
+                    <div className="filter-options">
                       <button 
-                        onClick={() => setEditingManager({ ...manager, mot_de_passe: '' })}
-                        className="action-button edit"
-                        aria-label="Modifier"
+                        className={`filter-option ${statusFilter === "tous" ? "selected" : ""}`}
+                        onClick={() => setStatusFilter("tous")}
                       >
-                        <Edit2 size={16} />
+                        Tous
                       </button>
                       <button 
-                        onClick={() => handleDelete(manager._id)}
-                        className="action-button delete"
-                        aria-label="Supprimer"
+                        className={`filter-option ${statusFilter === "actif" ? "selected" : ""}`}
+                        onClick={() => setStatusFilter("actif")}
                       >
-                        <Trash2 size={16} />
+                        Actifs
+                      </button>
+                      <button 
+                        className={`filter-option ${statusFilter === "inactif" ? "selected" : ""}`}
+                        onClick={() => setStatusFilter("inactif")}
+                      >
+                        Inactifs
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Modal d'ajout */}
-      {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Ajouter un nouveau Manager</h2>
-              <button className="modal-close" onClick={() => setShowAddModal(false)}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Nom*</label>
-                <input
-                  type="text"
-                  value={newManager.nom}
-                  onChange={(e) => setNewManager({...newManager, nom: e.target.value})}
-                  className={`form-input ${errors.nom ? 'input-error' : ''}`}
-                />
-                {errors.nom && <p className="error-message">{errors.nom}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Prénom*</label>
-                <input
-                  type="text"
-                  value={newManager.prenom}
-                  onChange={(e) => setNewManager({...newManager, prenom: e.target.value})}
-                  className={`form-input ${errors.prenom ? 'input-error' : ''}`}
-                />
-                {errors.prenom && <p className="error-message">{errors.prenom}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Email*</label>
-                <input
-                  type="email"
-                  value={newManager.email}
-                  onChange={(e) => setNewManager({...newManager, email: e.target.value})}
-                  className={`form-input ${errors.email ? 'input-error' : ''}`}
-                  placeholder="exemple@domaine.com"
-                />
-                {errors.email && <p className="error-message">{errors.email}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Mot de passe*</label>
-                <input
-                  type="password"
-                  value={newManager.mot_de_passe}
-                  onChange={(e) => setNewManager({...newManager, mot_de_passe: e.target.value})}
-                  className={`form-input ${errors.mot_de_passe ? 'input-error' : ''}`}
-                />
-                {errors.mot_de_passe && <p className="error-message">{errors.mot_de_passe}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Téléphone*</label>
-                <input
-                  type="text"
-                  value={newManager.telephone}
-                  onChange={(e) => setNewManager({...newManager, telephone: e.target.value})}
-                  className={`form-input ${errors.telephone ? 'input-error' : ''}`}
-                  placeholder="+212 6XXXXXXXX"
-                />
-                {errors.telephone && <p className="error-message">{errors.telephone}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Statut*</label>
-                <div className="toggle-container">
-                  <div 
-                    className={`status-toggle ${newManager.statut === 'actif' ? 'active' : 'inactive'}`}
-                    onClick={() => setNewManager({
-                      ...newManager, 
-                      statut: newManager.statut === 'actif' ? 'inactif' : 'actif'
-                    })}
-                  >
-                    <div className="toggle-handle"></div>
-                    <span className="toggle-label">
-                      {newManager.statut === 'actif' ? 'Actif' : 'Inactif'}
-                    </span>
                   </div>
+
+                  <button className="reset-filters" onClick={resetFilters}>
+                    Réinitialiser les filtres
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Liste des managers */}
+          {loading ? (
+            <div className="loading-state">
+              <div className="spinner"></div>
+              <p>Chargement des managers...</p>
+            </div>
+          ) : filteredManagers.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">📋</div>
+              <h3>Aucun manager trouvé</h3>
+              <p>Modifiez vos filtres ou ajoutez un nouveau manager</p>
+            </div>
+          ) : (
+            <div className="managers-table-container">
+              <table className="managers-table">
+                <thead>
+                  <tr>
+                    <th onClick={() => requestSort('nom')}>
+                      <div className="th-content">
+                        Nom
+                        {sortConfig?.key === 'nom' && (
+                          sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                        )}
+                      </div>
+                    </th>
+                    <th onClick={() => requestSort('prenom')}>
+                      <div className="th-content">
+                        Prénom
+                        {sortConfig?.key === 'prenom' && (
+                          sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                        )}
+                      </div>
+                    </th>
+                    <th onClick={() => requestSort('email')}>
+                      <div className="th-content">
+                        Email
+                        {sortConfig?.key === 'email' && (
+                          sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                        )}
+                      </div>
+                    </th>
+                    <th>
+                      <div className="th-content">Téléphone</div>
+                    </th>
+                    <th onClick={() => requestSort('date_creation')}>
+                      <div className="th-content">
+                        Date création
+                        {sortConfig?.key === 'date_creation' && (
+                          sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                        )}
+                      </div>
+                    </th>
+                    <th onClick={() => requestSort('statut')}>
+                      <div className="th-content">
+                        Statut
+                        {sortConfig?.key === 'statut' && (
+                          sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                        )}
+                      </div>
+                    </th>
+                    <th>
+                      <div className="th-content">Actions</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredManagers.map((manager) => (
+                    <tr key={manager._id} className="table-row">
+                      <td>{manager.nom}</td>
+                      <td>{manager.prenom}</td>
+                      <td>{manager.email}</td>
+                      <td>{manager.telephone}</td>
+                      <td>{formatDate(manager.date_creation)}</td>
+                      <td>
+                        <span className={`status-badge ${manager.statut === 'actif' ? 'active' : 'inactive'}`}>
+                          {manager.statut === 'actif' ? (
+                            <>
+                              <Check size={12} />
+                              <span>Actif</span>
+                            </>
+                          ) : (
+                            <>
+                              <X size={12} />
+                              <span>Inactif</span>
+                            </>
+                          )}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="actions-container">
+                          <button 
+                            onClick={() => setEditingManager({ ...manager, mot_de_passe: '' })}
+                            className="action-button edit"
+                            aria-label="Modifier"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(manager._id)}
+                            className="action-button delete"
+                            aria-label="Supprimer"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Modal d'ajout */}
+          {showAddModal && (
+            <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2 className="modal-title">Ajouter un nouveau Manager</h2>
+                  <button className="modal-close" onClick={() => setShowAddModal(false)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label className="form-label">Nom*</label>
+                    <input
+                      type="text"
+                      value={newManager.nom}
+                      onChange={(e) => setNewManager({...newManager, nom: e.target.value})}
+                      className={`form-input ${errors.nom ? 'input-error' : ''}`}
+                    />
+                    {errors.nom && <p className="error-message">{errors.nom}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Prénom*</label>
+                    <input
+                      type="text"
+                      value={newManager.prenom}
+                      onChange={(e) => setNewManager({...newManager, prenom: e.target.value})}
+                      className={`form-input ${errors.prenom ? 'input-error' : ''}`}
+                    />
+                    {errors.prenom && <p className="error-message">{errors.prenom}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Email*</label>
+                    <input
+                      type="email"
+                      value={newManager.email}
+                      onChange={(e) => setNewManager({...newManager, email: e.target.value})}
+                      className={`form-input ${errors.email ? 'input-error' : ''}`}
+                      placeholder="exemple@domaine.com"
+                    />
+                    {errors.email && <p className="error-message">{errors.email}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Mot de passe*</label>
+                    <input
+                      type="password"
+                      value={newManager.mot_de_passe}
+                      onChange={(e) => setNewManager({...newManager, mot_de_passe: e.target.value})}
+                      className={`form-input ${errors.mot_de_passe ? 'input-error' : ''}`}
+                    />
+                    {errors.mot_de_passe && <p className="error-message">{errors.mot_de_passe}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Téléphone*</label>
+                    <input
+                      type="text"
+                      value={newManager.telephone}
+                      onChange={(e) => setNewManager({...newManager, telephone: e.target.value})}
+                      className={`form-input ${errors.telephone ? 'input-error' : ''}`}
+                      placeholder="+212 6XXXXXXXX"
+                    />
+                    {errors.telephone && <p className="error-message">{errors.telephone}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Statut*</label>
+                    <div className="toggle-container">
+                      <div 
+                        className={`status-toggle ${newManager.statut === 'actif' ? 'active' : 'inactive'}`}
+                        onClick={() => setNewManager({
+                          ...newManager, 
+                          statut: newManager.statut === 'actif' ? 'inactif' : 'actif'
+                        })}
+                      >
+                        <div className="toggle-handle"></div>
+                        <span className="toggle-label">
+                          {newManager.statut === 'actif' ? 'Actif' : 'Inactif'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-actions">
+                  <button 
+                    onClick={() => {
+                      setShowAddModal(false);
+                      setErrors({});
+                    }}
+                    className="cancel-button"
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    onClick={handleAdd}
+                    className="submit-button"
+                  >
+                    <Plus size={18} />
+                    Ajouter
+                  </button>
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="modal-actions">
-              <button 
-                onClick={() => {
-                  setShowAddModal(false);
-                  setErrors({});
-                }}
-                className="cancel-button"
-              >
-                Annuler
-              </button>
-              <button 
-                onClick={handleAdd}
-                className="submit-button"
-              >
-                <Plus size={18} />
-                Ajouter
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de modification */}
-      {editingManager && (
-        <div className="modal-overlay" onClick={() => setEditingManager(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Modifier Manager</h2>
-              <button className="modal-close" onClick={() => setEditingManager(null)}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label">Nom*</label>
-                <input
-                  type="text"
-                  value={editingManager.nom}
-                  onChange={(e) => setEditingManager({...editingManager, nom: e.target.value})}
-                  className={`form-input ${errors.nom ? 'input-error' : ''}`}
-                />
-                {errors.nom && <p className="error-message">{errors.nom}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Prénom*</label>
-                <input
-                  type="text"
-                  value={editingManager.prenom}
-                  onChange={(e) => setEditingManager({...editingManager, prenom: e.target.value})}
-                  className={`form-input ${errors.prenom ? 'input-error' : ''}`}
-                />
-                {errors.prenom && <p className="error-message">{errors.prenom}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Email*</label>
-                <input
-                  type="email"
-                  value={editingManager.email}
-                  onChange={(e) => setEditingManager({...editingManager, email: e.target.value})}
-                  className={`form-input ${errors.email ? 'input-error' : ''} disabled`}
-                  disabled
-                />
-                {errors.email && <p className="error-message">{errors.email}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Nouveau mot de passe</label>
-                <input
-                  type="password"
-                  placeholder="Laisser vide pour ne pas changer"
-                  value={editingManager.mot_de_passe || ''}
-                  onChange={(e) => setEditingManager({...editingManager, mot_de_passe: e.target.value})}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Téléphone*</label>
-                <input
-                  type="text"
-                  value={editingManager.telephone}
-                  onChange={(e) => setEditingManager({...editingManager, telephone: e.target.value})}
-                  className={`form-input ${errors.telephone ? 'input-error' : ''}`}
-                  placeholder="+212 6XXXXXXXX"
-                />
-                {errors.telephone && <p className="error-message">{errors.telephone}</p>}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Statut*</label>
-                <div className="toggle-container">
-                  <div 
-                    className={`status-toggle ${editingManager.statut === 'actif' ? 'active' : 'inactive'}`}
-                    onClick={() => setEditingManager({
-                      ...editingManager, 
-                      statut: editingManager.statut === 'actif' ? 'inactif' : 'actif'
-                    })}
-                  >
-                    <div className="toggle-handle"></div>
-                    <span className="toggle-label">
-                      {editingManager.statut === 'actif' ? 'Actif' : 'Inactif'}
-                    </span>
+          {/* Modal de modification */}
+          {editingManager && (
+            <div className="modal-overlay" onClick={() => setEditingManager(null)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h2 className="modal-title">Modifier Manager</h2>
+                  <button className="modal-close" onClick={() => setEditingManager(null)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label className="form-label">Nom*</label>
+                    <input
+                      type="text"
+                      value={editingManager.nom}
+                      onChange={(e) => setEditingManager({...editingManager, nom: e.target.value})}
+                      className={`form-input ${errors.nom ? 'input-error' : ''}`}
+                    />
+                    {errors.nom && <p className="error-message">{errors.nom}</p>}
                   </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Prénom*</label>
+                    <input
+                      type="text"
+                      value={editingManager.prenom}
+                      onChange={(e) => setEditingManager({...editingManager, prenom: e.target.value})}
+                      className={`form-input ${errors.prenom ? 'input-error' : ''}`}
+                    />
+                    {errors.prenom && <p className="error-message">{errors.prenom}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Email*</label>
+                    <input
+                      type="email"
+                      value={editingManager.email}
+                      onChange={(e) => setEditingManager({...editingManager, email: e.target.value})}
+                      className={`form-input ${errors.email ? 'input-error' : ''} disabled`}
+                      disabled
+                    />
+                    {errors.email && <p className="error-message">{errors.email}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Nouveau mot de passe</label>
+                    <input
+                      type="password"
+                      placeholder="Laisser vide pour ne pas changer"
+                      value={editingManager.mot_de_passe || ''}
+                      onChange={(e) => setEditingManager({...editingManager, mot_de_passe: e.target.value})}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Téléphone*</label>
+                    <input
+                      type="text"
+                      value={editingManager.telephone}
+                      onChange={(e) => setEditingManager({...editingManager, telephone: e.target.value})}
+                      className={`form-input ${errors.telephone ? 'input-error' : ''}`}
+                      placeholder="+212 6XXXXXXXX"
+                    />
+                    {errors.telephone && <p className="error-message">{errors.telephone}</p>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Statut*</label>
+                    <div className="toggle-container">
+                      <div 
+                        className={`status-toggle ${editingManager.statut === 'actif' ? 'active' : 'inactive'}`}
+                        onClick={() => setEditingManager({
+                          ...editingManager, 
+                          statut: editingManager.statut === 'actif' ? 'inactif' : 'actif'
+                        })}
+                      >
+                        <div className="toggle-handle"></div>
+                        <span className="toggle-label">
+                          {editingManager.statut === 'actif' ? 'Actif' : 'Inactif'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="modal-actions">
+                  <button 
+                    onClick={() => setEditingManager(null)}
+                    className="cancel-button"
+                  >
+                    Annuler
+                  </button>
+                  <button 
+                    onClick={handleUpdate}
+                    className="update-button"
+                  >
+                    <Check size={18} />
+                    Mettre à jour
+                  </button>
                 </div>
               </div>
             </div>
-
-            <div className="modal-actions">
-              <button 
-                onClick={() => setEditingManager(null)}
-                className="cancel-button"
-              >
-                Annuler
-              </button>
-              <button 
-                onClick={handleUpdate}
-                className="update-button"
-              >
-                <Check size={18} />
-                Mettre à jour
-              </button>
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       <style jsx>{`
         /* Variables de couleurs */
@@ -1422,7 +1426,7 @@ const ManagersList = () => {
         }
         `}
       </style>
-    </div>
+    </AdminLayout>
   );
 };
 

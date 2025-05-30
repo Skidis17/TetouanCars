@@ -7,6 +7,12 @@ const loginAdmin = async (email: string, password: string) => {
   return response.data;
 };
 
+  // Fetches admin dashboard stats
+ const getAdminDashboardStats = async () => {
+    const response = await axios.get(`${API_URL}/admin/dashboard`);
+    return response.data.stats; // or return the whole data if you want admin info too
+  };
+
 const getReservations = async () => {
   const response = await axios.get(`${API_URL}/admin/reservations`);
   return response.data;
@@ -43,6 +49,30 @@ const updateReservationStatus = async (reservationId, status) => {
   });
   return response.data;
 };
+// api.ts
+const getVoitures = async () => {
+  const response = await axios.get(`${API_URL}/admin/voiture`);
+  return response.data;
+};
+
+const addVoiture = async (formData: FormData) => {
+  const response = await axios.post(`${API_URL}/admin/voiture`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+  return response.data;
+};
+
+const updateVoiture = async (id: string, formData: FormData) => {
+  const response = await axios.put(`${API_URL}/admin/voiture/${id}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+  return response.data;
+};
+
+const deleteVoiture = async (id: string) => {
+  const response = await axios.delete(`${API_URL}/admin/voiture/${id}`);
+  return response.data;
+};
 
 const API = {
   loginAdmin,
@@ -52,7 +82,12 @@ const API = {
   addManager,
   updateManager,
   deleteManager,
-  updateReservationStatus
+  updateReservationStatus,
+  getAdminDashboardStats,
+  getVoitures,
+  addVoiture,
+  updateVoiture,
+  deleteVoiture
 };
 
 export default API;

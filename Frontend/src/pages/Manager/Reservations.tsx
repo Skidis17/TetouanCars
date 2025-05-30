@@ -85,7 +85,7 @@ const Reservations = () => {
 
   // Safe filtering with null checks
   const filteredReservations = reservations
-    .filter((r) => r.statut === "en_attente")
+    .filter((r) => r.statut === "en attente")
     .filter(r => {
       const clientName = r.client?.name?.toLowerCase() || "";
       const carModel = r.car?.model?.toLowerCase() || "";
@@ -119,8 +119,11 @@ const Reservations = () => {
 
   const handleStatusUpdate = async (id: string, newStatus: string) => {
     try {
-      await API.updateReservationStatus(id, newStatus);
-      setReservations(reservations.map(r => 
+      // Send the correct payload to the PATCH endpoint
+      await API.updateReservationStatus(id, { status: newStatus });
+
+      // Update the local state
+      setReservations(reservations.map(r =>
         r._id === id ? { ...r, statut: newStatus } : r
       ));
       toast({ title: `Statut mis à jour: ${newStatus}` });
@@ -139,16 +142,15 @@ const Reservations = () => {
       if (!reservation) return;
 
       const newStatus = reservation.paiement.statut === "payée" ? "non payée" : "payée";
-      await API.updatePaymentStatus(id, { 
-        ...reservation.paiement, 
-        statut: newStatus 
-      });
 
-      setReservations(reservations.map(r => 
-        r._id === id ? { 
-          ...r, 
-          paiement: { ...r.paiement, statut: newStatus } 
-        } : r
+      // Send the correct payload to the PATCH endpoint
+      await API.updateReservationStatus(id, { paymentStatus: newStatus });
+
+      // Update the local state
+      setReservations(reservations.map(r =>
+        r._id === id
+          ? { ...r, paiement: { ...r.paiement, statut: newStatus } }
+          : r
       ));
       toast({ title: `Paiement ${newStatus}` });
     } catch (error) {

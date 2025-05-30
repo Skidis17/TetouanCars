@@ -2,26 +2,22 @@ export type type_carburant = 'Electrique' | 'Hybride' | 'Essence';
 export type CarStatus = 'disponible' | 'occupee';
 export type PermitType = 'B' | 'C' | 'D' | 'EB' | 'EC' | 'ED';
 
-export interface Car {
+export interface Voiture {
   _id: string;
   marque: string;
   model: string;
-  type: string; 
+  annee: number;
   immatriculation: string;
   couleur: string;
   kilometrage: number;
   prix_journalier: number;
-  status: CarStatus;
-  type_carburant: type_carburant;
+  status: 'disponible' | 'reservee' | 'maintenance' | 'hors_service';
+  type_carburant: string;
   nombre_places: number;
   options: string[];
-  date_ajout: Date;
-  image: string;
-  Permis: PermitType;
-  // occupancyDates?: {
-  //   from: string;
-  //   to: string;
-  // };
+  image_id?: string;
+  date_ajout?: Date;
+  date_modification?: Date;
 }
 
 export interface Manager {
@@ -33,7 +29,7 @@ export interface Manager {
 }
 
 // Updating mock data with 20 cars and proper image URLs
-export const mockCars: Car[] = [
+export const mockCars: Voiture[] = [
   
 ];
 

@@ -128,7 +128,7 @@ const EditCar: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="prix_journalier">Prix journalier (€)</label>
+              <label className="block text-sm font-medium mb-1" htmlFor="prix_journalier">Prix journalier (MAD)</label>
               <Input
                 id="prix_journalier"
                 name="prix_journalier"

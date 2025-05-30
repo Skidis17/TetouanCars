@@ -27,7 +27,7 @@ def get_car(car_id):
         if not ObjectId.is_valid(car_id):
             return jsonify({'error': 'Invalid car ID format'}), 400
 
-        car = mongo.db.cars.find_one({'_id': ObjectId(car_id)})
+        car = mongo.db.voitures.find_one({'_id': ObjectId(car_id)})
         
         if not car:
             return jsonify({'error': 'Car not found'}), 404

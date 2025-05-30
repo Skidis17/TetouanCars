@@ -42,7 +42,8 @@ def dashboard_stats():
     available_cars = total_cars - len(reserved_car_ids)
 
     active_client_ids = reservations_collection.distinct("client_id", {
-        "date_fin": {"$gte": now}
+        "date_fin": {"$gte": now.strftime("%Y-%m-%d")},  # Compare as string
+        "statut": {"$in": ["acceptée", "en attente"]}  # IncFude only active reservations
     })
     active_clients = len(active_client_ids)
 
@@ -58,7 +59,7 @@ def dashboard_stats():
 def upcoming_reservations():
     now = datetime.now()
     reservations = list(mongo.db.reservations.find(
-        {"date_debut": {"$gte": now}},
+        {"date_debut": {"$gte": now.strftime("%Y-%m-%d")}},  # Compare as string
         {"_id": 0, "client_id": 1, "voiture_id": 1, "date_debut": 1, "statut": 1}
     ).sort("date_debut", 1))
 
@@ -76,7 +77,7 @@ def upcoming_reservations():
         enriched_reservations.append({
             "clientName": f"{client['prenom']} {client['nom']}" if client else "Unknown",
             "carModel": f"{car['marque']} {car['modele']}" if car else "Unknown",
-            "startDate": reservation["date_debut"],
+            "startDate": reservation["date_debut"],  # Use the string directly
             "status": reservation["statut"]
         })
 
@@ -84,7 +85,7 @@ def upcoming_reservations():
 
 
 # Tout les Reservations
-@manager_bp.route("/managers/reservations", methods=["GET"])
+@manager_bp.route("/manager/reservations", methods=["GET"])
 def get_reservations():
     reservations = list(mongo.db.reservations.find({}, {
         "_id": 1,
@@ -108,30 +109,29 @@ def get_reservations():
             {"_id": 0, "marque": 1, "modele": 1}
         )
 
-        paiement = reservation.get("paiement", {})
-        payment_method = paiement.get("methode", "N/A")
-        payment_status = paiement.get("statut", "N/A")
-
         enriched_reservations.append({
-            "id": str(reservation["_id"]),
-            "clientName": f"{client['prenom']} {client['nom']}" if client else "Unknown",
-            "clientEmail": client["email"] if client else "Unknown",
-            "clientPhone": client["telephone"] if client else "Unknown",
-            "carModel": f"{car['marque']} {car['modele']}" if car else "Unknown",
-            "startDate": reservation["date_debut"],
-            "endDate": reservation["date_fin"],
-            "status": reservation["statut"],
-            "totalAmount": reservation["prix_total"],
-            "paymentMethod": payment_method,
-            "paymentStatus": payment_status,
-            "reservationDate": reservation.get("date_reservation")
+            "_id": str(reservation["_id"]),
+            "client": {
+                "name": f"{client['prenom']} {client['nom']}" if client else "Unknown",
+                "email": client["email"] if client else "Unknown",
+                "phone": client["telephone"] if client else "Unknown"
+            },
+            "car": {
+                "model": f"{car['marque']} {car['modele']}" if car else "Unknown"
+            },
+            "date_debut": reservation["date_debut"],
+            "date_fin": reservation["date_fin"],
+            "statut": reservation["statut"],
+            "prix_total": reservation["prix_total"],
+            "paiement": reservation.get("paiement", {"statut": "non payée"}),
+            "date_reservation": reservation.get("date_reservation")
         })
 
     return jsonify(enriched_reservations)
 
 
 # Reservation by ID
-@manager_bp.route("/managers/reservations/<reservation_id>", methods=["GET"])
+@manager_bp.route("/manager/reservations/<reservation_id>", methods=["GET"])
 def get_reservation(reservation_id):
     try:
         reservation = mongo.db.reservations.find_one({"_id": ObjectId(reservation_id)})
@@ -174,9 +174,9 @@ def get_cars():
         # Check if there is an active reservation for this car
         active_res = mongo.db.reservations.find_one({
             "voiture_id": car_id,
-            "date_debut": {"$lte": now},
-            "date_fin": {"$gte": now},
-            "statut": {"$in": ["acceptee", "en attente"]}
+            "date_debut": {"$lte": now.strftime("%Y-%m-%d")},
+            "date_fin": {"$gte": now.strftime("%Y-%m-%d")},
+            "statut": {"$in": ["acceptée", "en attente"]}
         })
 
         car["status"] = "indisponible" if active_res else "disponible"
@@ -196,18 +196,18 @@ def get_available_cars():
         if not start or not end:
             return jsonify({"error": "Missing start or end date"}), 400
 
-        start_date = datetime.fromisoformat(start)
-        end_date = datetime.fromisoformat(end)
+        start_date = start.split("T")[0]  # Extract only the date part
+        end_date = end.split("T")[0] 
 
         # Get list of car IDs that are reserved in the given date range
         reserved_car_ids = mongo.db.reservations.distinct("voiture_id", {
             "date_debut": {"$lte": end_date},
             "date_fin": {"$gte": start_date},
-            "statut": {"$in": ["acceptee", "en_attente"]}
+            "statut": {"$in": ["acceptée", "en attente"]}
         })
 
         # Find all cars not in the reserved list
-        available_cars = list(mongo.db.cars.find({
+        available_cars = list(mongo.db.voitures.find({
             "_id": {"$nin": reserved_car_ids}
         }))
 
@@ -293,7 +293,7 @@ def get_clients():
 
 ##--------------- POST METHOD ---------------##
 
-@manager_bp.route('/managers', methods=['POST'])
+@manager_bp.route('/manager', methods=['POST'])
 def add_manager():
     data = request.get_json()
 
@@ -305,7 +305,7 @@ def add_manager():
     return jsonify({'message': 'Manager ajouté avec succès'}), 201
 
 # Add a new reservation
-@manager_bp.route("/managers/reservations", methods=["POST"])
+@manager_bp.route("/manager/reservations", methods=["POST"])
 def add_reservation():
     try:
         data = request.json
@@ -317,12 +317,12 @@ def add_reservation():
         reservation = {
             "client_id": client_id,
             "voiture_id": car_id,
-            "date_debut": datetime.fromisoformat(details["startDate"].replace("Z", "+00:00")),
-            "date_fin": datetime.fromisoformat(details["endDate"].replace("Z", "+00:00")),
+            "date_debut": details["startDate"].split("T")[0],  # Save only the date part
+            "date_fin": details["endDate"].split("T")[0],    # Save only the date part
             "prix_total": details["totalAmount"],
             "discount": details.get("discount", 0),  
             "statut": "en attente",
-            "date_reservation": datetime.now(),
+            "date_reservation": datetime.now().strftime("%Y-%m-%d"), 
             "paiement": {
                 "methode": details["paymentMethod"],
                 "statut": details["paymentStatus"]
@@ -336,7 +336,7 @@ def add_reservation():
     
 
 # Add a new client
-@manager_bp.route("/managers/clients", methods=["POST"])
+@manager_bp.route("/manager/clients", methods=["POST"])
 def add_client():
     try:
         data = request.json
@@ -371,7 +371,7 @@ def add_client():
         }), 500
 
 # Add a new car
-@manager_bp.route("/managers/cars", methods=["POST"])
+@manager_bp.route("/manager/cars", methods=["POST"])
 def add_car():
     try:
         data = request.json
@@ -472,7 +472,7 @@ def update_car(car_id):
         "options": data.get("options", []),
         "image": data.get("image", ""),
     }
-    result = mongo.db.cars.update_one(
+    result = mongo.db.voitures.update_one(
         {"_id": ObjectId(car_id)},
         {"$set": update_fields}
     )
@@ -533,9 +533,9 @@ def delete_client(client_id):
         return jsonify({"error": str(e)}), 500
 
 # Delete a car
-@manager_bp.route("/manger/cars/<car_id>", methods=["DELETE"])
+@manager_bp.route("/manager/cars/<car_id>", methods=["DELETE"])
 def delete_car(car_id):
-    result = mongo.db.cars.delete_one({"_id": ObjectId(car_id)})
+    result = mongo.db.voitures.delete_one({"_id": ObjectId(car_id)})
 
     if result.deleted_count == 1:
         # Delete all reservations related to this car

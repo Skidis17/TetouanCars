@@ -26,13 +26,30 @@ const ReservationsHistory = () => {
 
     // Fetch reservations from backend
     const fetchReservations = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/manager/reservations");
-        setReservations(response.data);
-      } catch (error) {
-        console.error("Error fetching reservations:", error);
-      }
-    };
+    try {
+      const response = await axios.get("http://localhost:5000/manager/reservations");
+
+      // Map backend response to frontend structure
+      const mappedReservations = response.data.map((reservation: any) => ({
+        id: reservation._id, // Map _id to id
+        clientName: reservation.client?.name || "Unknown", // Map client.name
+        clientEmail: reservation.client?.email || "Unknown", // Map client.email
+        clientPhone: reservation.client?.phone || "Unknown", // Map client.phone
+        carModel: reservation.car?.model || "Unknown", // Map car.model
+        startDate: reservation.date_debut, // Map date_debut
+        endDate: reservation.date_fin, // Map date_fin
+        status: reservation.statut, // Map statut to status
+        totalAmount: reservation.prix_total, // Map prix_total to totalAmount
+        paymentMethod: reservation.paiement?.methode || "N/A", // Map paiement.methode
+        paymentStatus: reservation.paiement?.statut || "non payée", // Map paiement.statut
+        reservationDate: reservation.date_reservation, // Map date_reservation
+      }));
+
+      setReservations(mappedReservations);
+    } catch (error) {
+      console.error("Error fetching reservations:", error);
+    }
+  };
 
     fetchReservations();
   }, [navigate]);
@@ -41,7 +58,7 @@ const ReservationsHistory = () => {
   const filteredReservations = reservations
     .filter(
       (reservation) =>
-        reservation.status === "acceptee" || reservation.status === "refusée"
+        reservation.status === "acceptée" || reservation.status === "refusée"
     )
     .filter(
       (reservation) =>
@@ -102,17 +119,17 @@ const ReservationsHistory = () => {
                 <TableCell>{new Date(reservation.endDate).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    reservation.status === "acceptee"
+                    reservation.status === "acceptée"
                       ? "bg-green-100 text-green-800"
                       : "bg-red-100 text-red-800"
                   }`}>
                     {reservation.status}
                   </span>
                 </TableCell>
-                <TableCell>${reservation.totalAmount}</TableCell>
+                <TableCell>{reservation.totalAmount} MAD</TableCell>
                 <TableCell>{reservation.paymentMethod || "N/A"}</TableCell>
                 <TableCell>{reservation.paymentStatus || "N/A"}</TableCell>
-                <TableCell>{new Date(reservation.reservationDate).toLocaleDateString()}</TableCell>
+                <TableCell>{reservation.reservationDate || "N/A"}</TableCell>                
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button

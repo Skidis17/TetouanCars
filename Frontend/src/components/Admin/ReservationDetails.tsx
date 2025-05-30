@@ -31,9 +31,9 @@ const ReservationCalendar: React.FC<ReservationCalendarProps> = ({
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'en_attente':
+      case 'en attente':
         return { bg: '#FEF3C7', border: '#F59E0B', text: '#92400E' };
-      case 'acceptee':
+      case 'acceptée':
         return { bg: '#D1FAE5', border: '#10B981', text: '#065F46' };
       case 'refusee':
         return { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' };
