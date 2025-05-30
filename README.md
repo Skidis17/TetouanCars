@@ -8,7 +8,7 @@ This project was made mainly By Sadki Mohamed, El Mourabet Nada & Ezzahouri Wiam
 
 For the Backend check the requierement.txt file to see the libraries and the needed dependencies
 
-For the Backend follow these instructions:
+For the Frontend follow these instructions:
 
 ```sh
 # Step 1: Clone the repository using the project's Git URL.
