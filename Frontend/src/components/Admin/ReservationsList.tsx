@@ -61,9 +61,8 @@ const ReservationsList = () => {
     if (filters.searchTerm) {
       const term = filters.searchTerm.toLowerCase();
       result = result.filter(res => {
-        const clientId = typeof res.client_id === 'object' ? res.client_id._id : res.client_id;
-        const voitureId = typeof res.voiture_id === 'object' ? res.voiture_id._id : res.voiture_id;
-        
+        const clientId = res.client_id && typeof res.client_id === 'object' ? res.client_id._id : res.client_id || "";
+        const voitureId = res.voiture_id && typeof res.voiture_id === 'object' ? res.voiture_id._id : res.voiture_id || "";
         return (
           clientId.toLowerCase().includes(term) ||
           voitureId.toLowerCase().includes(term) ||

@@ -1,118 +1,139 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
-import styles from "./AdminLayout.module.css";
-import API from "../services/api";
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Calendar, Car, FileText, LogOut, Menu, User, X, ClipboardList, LayoutDashboard, History} from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
-type Statistic = {
-  title: string;
-  value: number | string;
-  change?: number;
-  icon?: string;
-};
+const AdminLayout = ({ children }) => {
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const userString = localStorage.getItem('user');
+  const user = userString ? JSON.parse(userString) : { name: 'Admin' };
 
-const AdminLayout = () => {
-  const location = useLocation();
-  const [stats, setStats] = useState<Statistic[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const statsData = await API.getAdminDashboardStats();
-        setStats(statsData);
-      } catch (error) {
-        console.error("Failed to load dashboard stats:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  const isActive = (path: string) => {
-    return location.pathname === `/admin/${path}` || 
-           location.pathname.startsWith(`/admin/${path}/`);
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('user');
+    toast({
+      title: "Déconnexion",
+      description: "Vous avez été déconnecté avec succès",
+    });
+    navigate('/admin/login');
   };
 
-  return (
-    <div className={styles.layoutContainer}>
-      {/* Sidebar */}
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>TetouanCars Admin</div>
-        <nav className={styles.nav}>
-          <Link
-            to="/admin/reservations"
-            className={`${styles.navLink} ${isActive("reservations") ? styles.navLinkActive : ""}`}
-          >
-            Réservations
-          </Link>
-          <Link
-            to="/admin/clients"
-            className={`${styles.navLink} ${isActive("clients") ? styles.navLinkActive : ""}`}
-          >
-            Clients
-          </Link>
-          <Link
-            to="/admin/managers"
-            className={`${styles.navLink} ${isActive("managers") ? styles.navLinkActive : ""}`}
-          >
-            Managers
-          </Link>
-          <Link
-            to="/admin/voitures"
-            className={`${styles.navLink} ${isActive("voitures") ? styles.navLinkActive : ""}`}
-          >
-            Voitures
-          </Link>
-        </nav>
-      </div>
+  const menuItems = [
+    { name: 'Tableau de Bord', path: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+    { name: 'Réservations', path: '/admin/reservations', icon: <ClipboardList className="h-5 w-5" /> },
+    { name: 'Clients', path: '/admin/clients', icon: <User className="h-5 w-5" /> }, 
+    { name: 'Managers', path: '/admin/managers', icon: <Calendar className="h-5 w-5" /> }, 
+    { name: 'Voitures', path: '/admin/voitures', icon: <Car className="h-5 w-5" /> }, 
+  ];
 
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-30 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex flex-col h-full">
+          {/* Logo Section */}
+          <div className="px-6 py-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                TetouanCars
+              </h2>
+              <button 
+                className="lg:hidden text-gray-500 hover:text-gray-700"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+          </div>
+          
+          {/* User Profile Section */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-semibold text-lg">
+                {user.name.charAt(0)}
+              </div>
+              <div>
+                <p className="font-medium text-gray-900">{user.name}</p>
+                <p className="text-sm text-gray-500">Administrateur</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Navigation Menu */}
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            {menuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`
+                }
+              >
+                <span className={`mr-3 ${({ isActive }) => isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+                  {item.icon}
+                </span>
+                {item.name}
+              </NavLink>
+            ))}
+          </nav>
+          
+          {/* Logout Button */}
+          <div className="p-4 border-t border-gray-200">
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center space-x-2 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 border-gray-200 hover:border-red-200 transition-all duration-200"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Déconnexion</span>
+            </Button>
+          </div>
+        </div>
+      </aside>
+      
       {/* Main Content */}
-      <div className={styles.mainContent}>
-        {/* Header */}
-        <header className={styles.header}>
-          <h2 className={styles.headerTitle}>Tableau de bord</h2>
-          <div className={styles.userProfile}>
-            <span>Admin</span>
-            <div className={styles.userAvatar}>A</div>
+      <div className="flex-1 lg:ml-72">
+        {/* Top Header */}
+        <header className="bg-white border-b border-gray-200 h-16 fixed top-0 right-0 left-0 lg:left-72 z-20">
+          <div className="px-4 h-full flex items-center justify-between">
+            <button
+              className="lg:hidden text-gray-500 hover:text-gray-700"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+            <div className="flex items-center space-x-4">
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <User className="h-5 w-5 text-gray-500" />
+              </div>
+            </div>
           </div>
         </header>
-
-        {/* Statistics Section */}
-        <section className={styles.statsSection}>
-          <h3 className={styles.statsTitle}>Statistiques</h3>
-          <div className={styles.statsGrid}>
-            {loading ? (
-              <div className={styles.loading}>Chargement des statistiques...</div>
-            ) : (
-              stats.map((stat) => (
-                <div key={stat.title} className={styles.statCard}>
-                  <div className={styles.statHeader}>
-                    <h4 className={styles.statTitle}>{stat.title}</h4>
-                    {stat.icon && <span className={styles.statIcon}>{stat.icon}</span>}
-                  </div>
-                  <div className={styles.statValue}>{stat.value}</div>
-                  {stat.change !== undefined && (
-                    <div className={`${styles.statChange} ${stat.change >= 0 ? styles.positive : styles.negative}`}>
-                      {stat.change >= 0 ? "↑" : "↓"} {Math.abs(stat.change)}% vs mois dernier
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-
-        {/* Main Content Area */}
-        <main className={styles.contentArea}>
-          <div className={styles.contentCard}>
-            <Outlet />
-          </div>
+        
+        {/* Page Content */}
+        <main className="pt-16 min-h-screen bg-gray-50">
+          {children}
         </main>
       </div>
+      
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
     </div>
   );
 };
 
-export default AdminLayout; 
+export default AdminLayout;
