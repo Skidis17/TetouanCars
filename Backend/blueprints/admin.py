@@ -56,27 +56,37 @@ def login():
 
 @admin_bp.route('/admin/dashboard')
 def dashboard():
-    # Directly fetch the first admin (since you only have one anyway)
     admin = mongo.db.admins.find_one()
     
     if not admin:
         return jsonify({"error": "Admin not found"}), 404
 
-    # Calculate statistics
     now = datetime.now()
     start_of_month = datetime(now.year, now.month, 1)
 
+    # Count reservations for the current month
     reservations_count = mongo.db.reservations.count_documents({
         'date_reservation': {'$gte': start_of_month}
     })
 
-    clients_count = mongo.db.clients.count_documents({})
+    # Count total clients
+    clients_count = mongo.db.clients.count_documents({
+        'nom': {'$exists': True},
+        'prenom': {'$exists': True}
+    })
+
+    # Count available vehicles
     voitures_dispo_count = mongo.db.voitures.count_documents({'status': 'disponible'})
 
-    total_revenue = sum(
-        float(reservation.get('prix_total', 0))  # Convert to float
-        for reservation in mongo.db.reservations.find({})
-    )
+    # Calculate total revenue
+    total_revenue = 0
+    reservations = mongo.db.reservations.find()
+    for reservation in reservations:
+        prix_total = reservation.get('prix_total', 0)
+        try:
+            total_revenue += float(prix_total)
+        except ValueError:
+            print(f"Invalid prix_total value: {prix_total}")
 
     return jsonify({
         "admin": {
