@@ -1,7 +1,9 @@
 // pages/AdminDashboard.tsx
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import styles from "../../components/Admin/AdminDashboard.module.css";
+import styles from "../../components/Admin/AdminDashboard.module.css";4
+import API from '../../services/api';
+import AdminLayout from "../../components/AdminLayout";
 
 // Type pour les statistiques
 type Statistic = {
@@ -18,21 +20,19 @@ const AdminDashboard = () => {
 
   // Simuler le chargement des statistiques
   useEffect(() => {
-    const fetchStats = async () => {
-      // En production, vous feriez une requête API ici
-      setTimeout(() => {
-        setStats([
-          { title: "Réservations ce mois", value: 42, change: 12 },
-          { title: "Clients actifs", value: 156, change: -3 },
-          { title: "Voitures disponibles", value: 28, change: 5 },
-          { title: "Revenus (MAD)", value: "84,500", change: 18 },
-        ]);
-        setLoading(false);
-      }, 800);
-    };
+  const fetchStats = async () => {
+    try {
+      const statsData = await API.getAdminDashboardStats();
+      setStats(statsData);
+    } catch (error) {
+      console.error("Erreur lors du chargement des statistiques:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchStats();
-  }, []);
+  fetchStats();
+}, []);
 
   // Vérifie si le lien est actif
   const isActive = (path: string) => {
@@ -40,47 +40,19 @@ const AdminDashboard = () => {
            location.pathname.startsWith(`/admin/${path}/`);
   };
 
-  return (
+  return (    
+  
+  <AdminLayout>
     <div className={styles.dashboardContainer}>
       {/* Sidebar */}
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarHeader}>TetouanCars Admin</div>
-        <nav>
-          <Link
-            to="/admin/reservations"
-            className={`${styles.navLink} ${isActive("reservations") ? styles.navLinkActive : ""}`}
-          >
-            Réservations
-          </Link>
-          <Link
-            to="/admin/clients"
-            className={`${styles.navLink} ${isActive("clients") ? styles.navLinkActive : ""}`}
-          >
-            Clients
-          </Link>
-          <Link
-            to="/admin/managers"
-            className={`${styles.navLink} ${isActive("managers") ? styles.navLinkActive : ""}`}
-          >
-            Managers
-          </Link>
-          <Link
-            to="/admin/voitures"
-            className={`${styles.navLink} ${isActive("voitures") ? styles.navLinkActive : ""}`}
-          >
-            Voitures
-          </Link>
-        </nav>
-      </div>
+      
 
       {/* Main Content */}
       <div className={styles.mainContent}>
         {/* Header */}
         <header className={styles.header}>
           <h2 className={styles.headerTitle}>Tableau de bord</h2>
-          <div className={styles.userProfile}>
-            <span>Admin</span>
-            <div className={styles.userAvatar}>A</div>
+        <div >
           </div>
         </header>
 
@@ -109,12 +81,13 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          <div className={styles.contentCard}>
+          <div >
             <Outlet />
           </div>
         </main>
       </div>
     </div>
+    </AdminLayout>
   );
 };
 

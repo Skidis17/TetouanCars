@@ -64,10 +64,14 @@ def dashboard():
     now = datetime.now()
     start_of_month = datetime(now.year, now.month, 1)
 
-    # Count reservations for the current month
-    reservations_count = mongo.db.reservations.count_documents({
-        'date_reservation': {'$gte': start_of_month}
-    })
+# Get all reservations
+    all_reservations = mongo.db.reservations.find()
+
+# Count reservations in the current month
+    reservations_count = sum(
+    1 for r in all_reservations
+    if 'date_reservation' in r and datetime.strptime(r['date_reservation'], '%Y-%m-%d') >= start_of_month
+    )
 
     # Count total clients
     clients_count = mongo.db.clients.count_documents({
@@ -94,7 +98,7 @@ def dashboard():
             "nom": admin['nom']
         },
         "stats": [
-            { "title": "Réservations ce mois", "value": reservations_count, "change": 12 },
+            { "title": "Reservations ce mois", "value": reservations_count, "change": 12 },
             { "title": "Clients actifs", "value": clients_count, "change": -3 },
             { "title": "Voitures disponibles", "value": voitures_dispo_count, "change": 5 },
             { "title": "Revenus (MAD)", "value": f"{total_revenue:,.0f}", "change": 18 }
