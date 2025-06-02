@@ -56,39 +56,12 @@ def login():
 
 @admin_bp.route('/admin/dashboard')
 def dashboard():
-    # Directly fetch the first admin (since you only have one anyway)
-    admin = mongo.db.admins.find_one()
-    
-    if not admin:
-        return jsonify({"error": "Admin not found"}), 404
-
-    # Calculate statistics
-    now = datetime.now()
-    start_of_month = datetime(now.year, now.month, 1)
-
-    reservations_count = mongo.db.reservations.count_documents({
-        'date_reservation': {'$gte': start_of_month}
-    })
-
-    clients_count = mongo.db.clients.count_documents({})
-    voitures_dispo_count = mongo.db.voitures.count_documents({'status': 'disponible'})
-
-    total_revenue = sum(
-        reservation.get('prix_total', 0)
-        for reservation in mongo.db.reservations.find({})
-    )
-
+    admin = mongo.db.admins.find_one({'_id': ObjectId(session['admin_id'])})
     return jsonify({
         "admin": {
             "email": admin['email'],
             "nom": admin['nom']
-        },
-        "stats": [
-            { "title": "Réservations ce mois", "value": reservations_count, "change": 12 },
-            { "title": "Clients actifs", "value": clients_count, "change": -3 },
-            { "title": "Voitures disponibles", "value": voitures_dispo_count, "change": 5 },
-            { "title": "Revenus (MAD)", "value": f"{total_revenue:,.0f}", "change": 18 }
-        ]
+        }
     })
 
 
@@ -166,13 +139,44 @@ def get_reservations():
     reservations = list(mongo.db.reservations.find())
     for res in reservations:
         res['_id'] = str(res['_id'])
-        res['client_id'] = str(res['client_id'])
-        res['voiture_id'] = str(res['voiture_id'])
-        res['manager_createur_id'] = str(res['manager_createur_id'])
-        res['manager_traiteur_id'] = str(res['manager_traiteur_id'])
-        res['date_debut'] = res['date_debut'].isoformat() 
-        res['date_fin'] = res['date_fin'].isoformat() 
-        res['date_reservation'] = res['date_reservation'].isoformat() 
+
+        # Fetch client details
+        if 'client_id' in res:
+            client = mongo.db.clients.find_one({"_id": ObjectId(res['client_id'])})
+            if client:
+                res['client_id'] = {
+                    "_id": str(client['_id']),
+                    "nom": client.get('nom', ''),
+                    "prenom": client.get('prenom', '')
+                }
+            else:
+                res['client_id'] = None
+
+        # Fetch vehicle details
+        if 'voiture_id' in res:
+            voiture = mongo.db.voitures.find_one({"_id": ObjectId(res['voiture_id'])})
+            if voiture:
+                res['voiture_id'] = {
+                    "_id": str(voiture['_id']),
+                    "marque": voiture.get('marque', ''),
+                    "modele": voiture.get('modele', '')
+                }
+            else:
+                res['voiture_id'] = None
+
+        # Convert string dates to ISO format
+        res['date_debut'] = (
+            datetime.strptime(res['date_debut'], "%Y-%m-%d").isoformat()
+            if res.get('date_debut') else None
+        )
+        res['date_fin'] = (
+            datetime.strptime(res['date_fin'], "%Y-%m-%d").isoformat()
+            if res.get('date_fin') else None
+        )
+        res['date_reservation'] = (
+            datetime.strptime(res['date_reservation'], "%Y-%m-%d").isoformat()
+            if res.get('date_reservation') else None
+        )
     return jsonify(reservations)
 
 @admin_bp.route('/admin/clients', methods=['GET'])

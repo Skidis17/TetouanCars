@@ -17,22 +17,20 @@ const ReservationDetails: React.FC<ReservationDetailsProps> = ({
   onClose,
   onStatusChange,
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
-
-  const getStatusLabel = (statut: string) => {
-    switch (statut) {
-      case "en_attente": return "En attente";
-      case "acceptee": return "Acceptée";
-      case "refusee": return "Refusée";
-      case "annulee": return "Annulée";
-      case "terminee": return "Terminée";
-      default: return statut;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'en attente':
+        return { bg: '#FEF3C7', border: '#F59E0B', text: '#92400E' };
+      case 'acceptée':
+        return { bg: '#D1FAE5', border: '#10B981', text: '#065F46' };
+      case 'refusee':
+        return { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' };
+      case 'annulee':
+        return { bg: '#E5E7EB', border: '#9CA3AF', text: '#1F2937' };
+      case 'terminee':
+        return { bg: '#DBEAFE', border: '#3B82F6', text: '#1E40AF' };
+      default:
+        return { bg: '#E5E7EB', border: '#9CA3AF', text: '#1F2937' };
     }
   };
 

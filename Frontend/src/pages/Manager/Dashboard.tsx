@@ -105,11 +105,11 @@ const Dashboard = () => {
                     <div>
                       <p className="font-medium">{reservation.clientName}</p>
                       <p className="text-sm text-muted-foreground">
-                        {reservation.carModel} - {new Date(reservation.startDate).toLocaleDateString()}
+                        {reservation.carModel} - {reservation.startDate || "N/A"}
                       </p>
                     </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${
-                      reservation.status === "acceptee"
+                      reservation.status === "acceptée"
                         ? "bg-green-100 text-green-800"
                         : "bg-yellow-100 text-yellow-800"
                     }`}>

@@ -6,12 +6,7 @@ import { Voiture } from "../../types/car";
 import AdminLayout from "../../components/AdminLayout";
 import { Search, X, Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import API_ENDPOINTS from "../../config/api";
 
-// Définir l'interface pour les propriétés de l'image
-interface VoitureWithImage extends Voiture {
-  image_id?: string;
-}
 
 const VoitureList = () => {
   const [voitures, setVoitures] = useState<Voiture[]>([]);
@@ -34,82 +29,45 @@ const VoitureList = () => {
     options: [],
   };
 
-  const fetchVoitures = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(API_ENDPOINTS.VOITURES);
-      setVoitures(response.data);
-    } catch (error) {
-      console.error("Error fetching voitures:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger la liste des voitures",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchVoitures = async () => {
+  try {
+    const data = await API.getVoitures();
+    setVoitures(data);
+    setLoading(false);
+  } catch (error) {
+   console.error("Error fetching voitures:", error, error?.response?.data);
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchVoitures();
   }, []);
 
   const handleSubmit = async (formData: FormData) => {
+  try {
+    if (editingVoiture) {
+      await API.updateVoiture(editingVoiture._id, formData);
+    } else {
+      await API.addVoiture(formData);
+    }
+    setShowForm(false);
+    fetchVoitures();
+  } catch (error) {
+    console.error("Error submitting voiture:", error);
+  }
+};
+
+const handleDelete = async (id: string) => {
+  if (window.confirm("Voulez-vous vraiment supprimer cette voiture ?")) {
     try {
-      if (editingVoiture) {
-        await axios.put(`${API_ENDPOINTS.VOITURES}/${editingVoiture._id}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        toast({
-          title: "Succès",
-          description: "Voiture modifiée avec succès",
-        });
-      } else {
-        await axios.post(API_ENDPOINTS.VOITURES, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        toast({
-          title: "Succès",
-          description: "Voiture ajoutée avec succès",
-        });
-      }
-      setShowForm(false);
+      await API.deleteVoiture(id);
       fetchVoitures();
     } catch (error) {
-      console.error("Error submitting voiture:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de l'opération",
-        variant: "destructive",
-      });
+      console.error("Error deleting voiture:", error);
     }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette voiture ?")) {
-      try {
-        await axios.delete(`${API_ENDPOINTS.VOITURES}/${id}`);
-        toast({
-          title: "Succès",
-          description: "Voiture supprimée avec succès",
-        });
-        fetchVoitures();
-      } catch (error) {
-        console.error("Error deleting voiture:", error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de supprimer la voiture",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
+  }
+};
   const openAddForm = () => {
     setEditingVoiture(null);
     setShowForm(true);
@@ -146,57 +104,26 @@ const VoitureList = () => {
         <div className="voiture-list-container">
           <div className="list-header">
             <h1 className="list-title">Gestion des voitures</h1>
+            
+            
             <div className="list-actions">
               <button 
                 onClick={openAddForm} 
                 className="add-button"
               >
-                <Plus className="h-5 w-5 mr-2" />
                 Ajouter une Voiture
               </button>
             </div>
           </div>
 
           {showForm && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h2 className="modal-title">
-                    {editingVoiture ? 'Modifier la voiture' : 'Ajouter une voiture'}
-                  </h2>
-                  <button 
-                    onClick={() => setShowForm(false)}
-                    className="modal-close"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                <div className="modal-body">
-                  {editingVoiture && editingVoiture.image_id && (
-                    <div className="current-image-section">
-                      <h3 className="current-image-title">Image actuelle</h3>
-                      <div className="current-image-container">
-                        <img 
-                          src={`${API_ENDPOINTS.IMAGE_URL}/${editingVoiture.image_id}`}
-                          alt={`${editingVoiture.marque} ${editingVoiture.model}`}
-                          className="current-image"
-                          onError={({ currentTarget }) => {
-                            currentTarget.onerror = null;
-                            currentTarget.src = "https://via.placeholder.com/300";
-                            currentTarget.className = "current-image placeholder-image";
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <VoitureForm
-                    initialData={editingVoiture || initialFormState}
-                    editingVoiture={editingVoiture}
-                    onSubmit={handleSubmit}
-                    onCancel={() => setShowForm(false)}
-                  />
-                </div>
-              </div>
+            <div className="form-modal">
+              <VoitureForm
+                initialData={editingVoiture || initialFormState}
+                editingVoiture={editingVoiture}
+                onSubmit={handleSubmit}
+                onCancel={() => setShowForm(false)}
+              />
             </div>
           )}
 
@@ -209,7 +136,6 @@ const VoitureList = () => {
             <div className="empty-state">
               <p>Aucun véhicule enregistré</p>
               <button onClick={openAddForm} className="add-button">
-                <Plus className="h-5 w-5 mr-2" />
                 Ajouter votre premier véhicule
               </button>
             </div>
@@ -220,8 +146,8 @@ const VoitureList = () => {
                   <div className="card-image-container">
                     {voiture.image_id ? (
                       <img 
-                        src={`${API_ENDPOINTS.IMAGE_URL}/${voiture.image_id}`}
-                        alt={`${voiture.marque} ${voiture.model}`}
+                        src={`http://localhost:5000/api/image/${voiture.image_id}`}
+                        alt={`${voiture.marque} ${voiture.modele}`}
                         className="card-image"
                         onError={({ currentTarget }) => {
                           currentTarget.onerror = null;
@@ -238,7 +164,7 @@ const VoitureList = () => {
                   
                   <div className="card-content">
                     <div className="card-header">
-                      <h2 className="card-title">{voiture.marque} {voiture.model}</h2>
+                      <h2 className="card-title">{voiture.marque} {voiture.modele}</h2>
                       <span className={`status-badge ${getStatusColor(voiture.status)}`}>
                         {getStatusLabel(voiture.status)}
                       </span>
@@ -267,16 +193,14 @@ const VoitureList = () => {
                       </div>
                     </div>
                     
-                    {voiture.options && voiture.options.length > 0 && (
+                    {voiture.options.length > 0 && (
                       <div className="card-options">
                         <h3 className="options-title">Options</h3>
-                        <div className="options-grid">
+                        <ul className="options-list">
                           {voiture.options.map((opt, i) => (
-                            <span key={i} className="option-item">
-                              {opt}
-                            </span>
+                            <li key={i} className="option-item">{opt}</li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
                     )}
                     
@@ -285,14 +209,12 @@ const VoitureList = () => {
                         onClick={() => openEditForm(voiture)} 
                         className="edit-button"
                       >
-                        <Edit2 className="h-4 w-4 mr-2" />
                         Modifier
                       </button>
                       <button 
                         onClick={() => handleDelete(voiture._id)} 
                         className="delete-button"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
                         Supprimer
                       </button>
                     </div>
@@ -311,9 +233,6 @@ const VoitureList = () => {
           }
           
           .list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1.5rem;
             border-bottom: 1px solid #e2e8f0;
@@ -323,16 +242,21 @@ const VoitureList = () => {
             font-size: 1.75rem;
             font-weight: 600;
             color: #2d3748;
+            margin-bottom: 0.5rem;
+          }
+          
+          .list-subtitle {
+            font-size: 1rem;
+            color: #718096;
+            margin-bottom: 1.5rem;
           }
           
           .list-actions {
             display: flex;
-            gap: 1rem;
+            justify-content: flex-end;
           }
           
           .add-button {
-            display: flex;
-            align-items: center;
             padding: 0.75rem 1.5rem;
             background-color: #4299e1;
             color: white;
@@ -341,82 +265,66 @@ const VoitureList = () => {
             font-size: 0.9375rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease;
           }
           
           .add-button:hover {
             background-color: #3182ce;
-            transform: translateY(-1px);
           }
           
-          .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.75);
+          .form-modal {
+            margin-bottom: 2rem;
+          }
+          
+          /* Loading State */
+          .loading-state {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            animation: fadeIn 0.2s ease-out;
+            padding: 3rem;
+            gap: 1rem;
           }
           
-          .modal-content {
-            background: white;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            animation: slideIn 0.3s ease-out;
+          .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(66, 153, 225, 0.2);
+            border-radius: 50%;
+            border-top-color: #4299e1;
+            animation: spin 1s linear infinite;
           }
           
-          .modal-header {
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          
+          /* Empty State */
+          .empty-state {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
+            justify-content: center;
+            padding: 3rem;
+            gap: 1.5rem;
             background-color: #f8fafc;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
+            border-radius: 8px;
+            border: 1px dashed #cbd5e0;
           }
           
-          .modal-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin: 0;
-          }
-          
-          .modal-close {
-            background: none;
-            border: none;
-            color: #718096;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-          }
-          
-          .modal-close:hover {
-            background-color: #edf2f7;
+          .empty-state p {
+            font-size: 1.125rem;
             color: #4a5568;
           }
           
-          .modal-body {
-            padding: 1.5rem;
-          }
-          
+          /* Voiture Grid */
           .voiture-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.5rem;
           }
           
+          /* Voiture Card */
           .voiture-card {
             background: white;
             border-radius: 10px;
@@ -455,6 +363,12 @@ const VoitureList = () => {
             align-items: center;
             justify-content: center;
             color: #a0aec0;
+          }
+          
+          .placeholder-image {
+            object-fit: contain;
+            padding: 1rem;
+            background-color: #f8fafc;
           }
           
           .card-content {
@@ -516,10 +430,13 @@ const VoitureList = () => {
             margin-bottom: 0.5rem;
           }
           
-          .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+          .options-list {
+            display: flex;
+            flex-wrap: wrap;
             gap: 0.5rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
           }
           
           .option-item {
@@ -528,7 +445,6 @@ const VoitureList = () => {
             background-color: #ebf8ff;
             color: #3182ce;
             border-radius: 4px;
-            text-align: center;
           }
           
           .card-actions {
@@ -538,8 +454,6 @@ const VoitureList = () => {
           }
           
           .edit-button {
-            display: flex;
-            align-items: center;
             flex: 1;
             padding: 0.5rem;
             background-color: #edf2f7;
@@ -549,17 +463,14 @@ const VoitureList = () => {
             font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease;
           }
           
           .edit-button:hover {
             background-color: #e2e8f0;
-            transform: translateY(-1px);
           }
           
           .delete-button {
-            display: flex;
-            align-items: center;
             flex: 1;
             padding: 0.5rem;
             background-color: #fff5f5;
@@ -569,108 +480,11 @@ const VoitureList = () => {
             font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background-color 0.2s ease;
           }
           
           .delete-button:hover {
             background-color: #fed7d7;
-            transform: translateY(-1px);
-          }
-          
-          .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            gap: 1rem;
-          }
-          
-          .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(66, 153, 225, 0.2);
-            border-radius: 50%;
-            border-top-color: #4299e1;
-            animation: spin 1s linear infinite;
-          }
-          
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-          
-          .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 3rem;
-            gap: 1.5rem;
-            background-color: #f8fafc;
-            border-radius: 8px;
-            border: 1px dashed #cbd5e0;
-          }
-          
-          .empty-state p {
-            font-size: 1.125rem;
-            color: #4a5568;
-          }
-          
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-            }
-            to {
-              opacity: 1;
-            }
-          }
-          
-          @keyframes slideIn {
-            from {
-              transform: translateY(-20px);
-              opacity: 0;
-            }
-            to {
-              transform: translateY(0);
-              opacity: 1;
-            }
-          }
-
-          .current-image-section {
-            margin-bottom: 2rem;
-            padding: 1rem;
-            background-color: #f8fafc;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-          }
-
-          .current-image-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #4a5568;
-            margin-bottom: 1rem;
-          }
-
-          .current-image-container {
-            width: 100%;
-            max-width: 300px;
-            margin: 0 auto;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          }
-
-          .current-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            display: block;
-          }
-
-          .current-image.placeholder-image {
-            object-fit: contain;
-            padding: 1rem;
-            background-color: #edf2f7;
           }
         `}</style>
       </div>

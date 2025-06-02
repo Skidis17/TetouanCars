@@ -142,7 +142,7 @@ const CalendarView = () => {
                           key={reservation.id}
                           onClick={() => handleReservationClick(reservation)}
                           className={`text-xs p-1 rounded cursor-pointer transition-colors ${
-                            reservation.status === "acceptee"
+                            reservation.status === "acceptée"
                                 ? "bg-green-100 hover:bg-green-200 text-green-800"
                                 : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
                             }`}

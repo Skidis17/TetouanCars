@@ -36,7 +36,7 @@ const formSchema = z.object({
     message: "Invalid end date",
   }),
   paymentMethod: z.enum(["card", "cash", "bank_transfer"]),
-  paymentStatus: z.enum(["paid", "unpaid"]),
+  paymentStatus: z.enum(["payée", "non payée"]),
   totalAmount: z.number().min(0, "Total amount must be positive"),
   discount: z.number().min(0).max(100).default(0), 
 }).refine(
@@ -60,7 +60,7 @@ const AddReservation = () => {
       startDate: "",
       endDate: "",
       paymentMethod: "card",
-      paymentStatus: "unpaid",
+      paymentStatus: "non payée",
       totalAmount: 0,
     },
   });
@@ -151,7 +151,7 @@ type OptionType = {
         title: "Reservation added",
         description: `Reservation #${response.data.id} created successfully`,
       });
-      navigate("/reservations");
+      navigate("/manager/reservations");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -195,7 +195,7 @@ type OptionType = {
                         <ReactSelect
                           options={availableCars.map((car) => ({
                             value: car._id,
-                            label: `${car.marque} ${car.modele} (${car.immatriculation}) - ${car.couleur}, ${car.prix_journalier}€/jour`,
+                            label: `${car.marque} ${car.modele} (${car.immatriculation}) - ${car.couleur}, ${car.prix_journalier}MAD/jour`,
                           }))}
                           onChange={(option) => field.onChange(option ? option.value : "")}
                           isSearchable
@@ -208,7 +208,7 @@ type OptionType = {
                             availableCars
                               .map((car) => ({
                                 value: car._id,
-                                label: `${car.marque} ${car.modele} (${car.immatriculation}) - ${car.couleur}, ${car.prix_journalier}€/jour`,
+                                label: `${car.marque} ${car.modele} (${car.immatriculation}) - ${car.couleur}, ${car.prix_journalier}MAD/jour`,
                               }))
                               .find((option) => option.value === field.value) || null
                           }
@@ -356,8 +356,8 @@ type OptionType = {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="paid">Paid</SelectItem>
-                          <SelectItem value="unpaid">Unpaid</SelectItem>
+                          <SelectItem value="payée">payée</SelectItem>
+                          <SelectItem value="non payée">non payée</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -412,7 +412,7 @@ type OptionType = {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate("/reservations")}
+                  onClick={() => navigate("/manager/reservations")}
                 >
                   Cancel
                 </Button>

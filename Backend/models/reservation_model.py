@@ -12,7 +12,7 @@ class Reservation:
         date_debut,
         date_fin,
         prix_total,
-        statut="en_attente",
+        statut="en attente",
         date_reservation=None
     ):
         self._id = ObjectId()
@@ -23,7 +23,7 @@ class Reservation:
         self.date_debut = date_debut
         self.date_fin = date_fin
         self.prix_total = prix_total
-        self.statut = statut  # en_attente/acceptee/refusee/annulee
+        self.statut = statut  # en attente/acceptée/refusee
         self.date_reservation = date_reservation or datetime.utcnow()
         self.paiement = None
 

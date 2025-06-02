@@ -192,10 +192,10 @@ const CarsList: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Tous</SelectItem>
-                <SelectItem value="lt30">Moins de 30€</SelectItem>
-                <SelectItem value="30to50">30€ - 50€</SelectItem>
-                <SelectItem value="51to100">51€ - 100€</SelectItem>
-                <SelectItem value="gt100">Plus de 100€</SelectItem>
+                <SelectItem value="lt30">Moins de 30MAD</SelectItem>
+                <SelectItem value="30to50">30MAD - 50MAD</SelectItem>
+                <SelectItem value="51to100">51MAD - 100MAD</SelectItem>
+                <SelectItem value="gt100">Plus de 100MAD</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -277,7 +277,7 @@ const CarsList: React.FC = () => {
                   <b>Kilométrage:</b> {car.kilometrage} km
                 </div>
                 <div>
-                  <b>Prix/Jour:</b> <span className="text-green-700 font-bold">{car.prix_journalier} €</span>
+                  <b>Prix/Jour:</b> <span className="text-green-700 font-bold">{car.prix_journalier} MAD</span>
                 </div>
                 {car.options && car.options.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -295,7 +295,7 @@ const CarsList: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/cars/edit/${car._id}`)}
+                    onClick={() => navigate(`/manager/cars/edit/${car._id}`)}
                   >
                     <Pencil className="w-4 h-4 mr-1" /> Modifier
                   </Button>

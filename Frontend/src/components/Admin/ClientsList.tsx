@@ -7,7 +7,7 @@ import {
   FiChevronLeft, FiChevronRight
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import { Client } from "../../types/client";
+import { Client } from "../../types/clientTypes";
 import AdminLayout from "../../components/AdminLayout";
 import { Search, X, Plus, Trash2, Edit2, Check, ChevronDown, ChevronUp, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";

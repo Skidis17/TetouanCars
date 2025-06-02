@@ -83,7 +83,7 @@ const AddCar: React.FC = () => {
             <Input {...form.register("immatriculation")} placeholder="Immatriculation" />
             <Input {...form.register("couleur")} placeholder="Couleur" />
             <Input {...form.register("kilometrage")} type="number" min={0} placeholder="Kilométrage" />
-            <Input {...form.register("prix_journalier")} type="number" min={0} placeholder="Prix journalier (€)" />
+            <Input {...form.register("prix_journalier")} type="number" min={0} placeholder="Prix journalier (MAD)" />
             <Controller
               control={form.control}
               name="type_carburant"
@@ -106,7 +106,7 @@ const AddCar: React.FC = () => {
             <Input {...form.register("options")} placeholder="Options (séparées par des virgules)" />
             <div className="flex gap-2 mt-4">
               <Button type="submit">Ajouter</Button>
-              <Button type="button" variant="outline" onClick={() => navigate("/CarsList")}>
+              <Button type="button" variant="outline" onClick={() => navigate("/manager/CarsList")}>
                 Annuler
               </Button>
             </div>

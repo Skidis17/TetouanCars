@@ -32,8 +32,8 @@ const ReservationFilters: React.FC<ReservationFiltersProps> = ({
 
   const statusOptions = [
     { value: 'all', label: 'Tous les statuts' },
-    { value: 'en_attente', label: 'En attente' },
-    { value: 'acceptee', label: 'Acceptée' },
+    { value: 'en attente', label: 'En attente' },
+    { value: 'acceptée', label: 'Acceptée' },
     { value: 'refusee', label: 'Refusée' },
     { value: 'annulee', label: 'Annulée' },
     { value: 'terminee', label: 'Terminée' }

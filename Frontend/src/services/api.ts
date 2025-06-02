@@ -10,7 +10,7 @@ const loginAdmin = async (email: string, password: string) => {
   // Fetches admin dashboard stats
  const getAdminDashboardStats = async () => {
     const response = await axios.get(`${API_URL}/admin/dashboard`);
-    return response.data.stats; // or return the whole data if you want admin info too
+    return response.data.stats; 
   };
 
 const getReservations = async () => {

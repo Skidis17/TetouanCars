@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-// import { getReservations, updateReservationStatus } from "../../services/api";
-import API from '../../services/api'; // using API object now
+import API from '../../services/api';
 import styles from './ReservationsList.module.css';
 import ReservationCalendar from './ReservationCalendar';
 import ReservationDetails from './ReservationDetails';
@@ -61,9 +60,10 @@ const ReservationsList = () => {
     if (filters.searchTerm) {
       const term = filters.searchTerm.toLowerCase();
       result = result.filter(res => {
-        const clientId = typeof res.client_id === 'object' ? res.client_id._id : res.client_id;
-        const voitureId = typeof res.voiture_id === 'object' ? res.voiture_id._id : res.voiture_id;
-        
+        const clientId = res.client_id && typeof res.client_id === 'object' ? 
+                         res.client_id._id : res.client_id || "";
+        const voitureId = res.voiture_id && typeof res.voiture_id === 'object' ? 
+                         res.voiture_id._id : res.voiture_id || "";
         return (
           clientId.toLowerCase().includes(term) ||
           voitureId.toLowerCase().includes(term) ||
@@ -108,7 +108,7 @@ const ReservationsList = () => {
 
   const getStatusIcon = (statut: string) => {
     switch (statut) {
-      case "acceptee": return <FiCheckCircle className={styles.statusAccepted} />;
+      case "acceptée": return <FiCheckCircle className={styles.statusAccepted} />;
       case "refusee": return <FiXCircle className={styles.statusRejected} />;
       case "annulee": return <FiXCircle className={styles.statusCancelled} />;
       case "terminee": return <FiCheckCircle className={styles.statusCompleted} />;
@@ -118,8 +118,8 @@ const ReservationsList = () => {
 
   const getStatusLabel = (statut: string) => {
     switch (statut) {
-      case "en_attente": return "En attente";
-      case "acceptee": return "Acceptée";
+      case "en attente": return "En attente";
+      case "acceptée": return "Acceptée";
       case "refusee": return "Refusée";
       case "annulee": return "Annulée";
       case "terminee": return "Terminée";
@@ -221,17 +221,21 @@ const ReservationsList = () => {
                         >
                           <td>{reservation._id.substring(0, 8)}...</td>
                           <td>
-                            {typeof reservation.client_id === 'object' ? (
+                            {reservation.client_id && typeof reservation.client_id === 'object' ? (
                               `${reservation.client_id.prenom} ${reservation.client_id.nom}`
-                            ) : (
+                            ) : reservation.client_id ? (
                               reservation.client_id
+                            ) : (
+                              'Client inconnu'
                             )}
                           </td>
                           <td>
-                            {typeof reservation.voiture_id === 'object' ? (
+                            {reservation.voiture_id && typeof reservation.voiture_id === 'object' ? (
                               `${reservation.voiture_id.marque} ${reservation.voiture_id.modele}`
-                            ) : (
+                            ) : reservation.voiture_id ? (
                               reservation.voiture_id
+                            ) : (
+                              'Voiture inconnue'
                             )}
                           </td>
                           <td>

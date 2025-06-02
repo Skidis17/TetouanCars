@@ -13,7 +13,7 @@ CORS(app)
 
 stats_bp = Blueprint('stats', __name__)
 
-app.config["MONGO_URI"] = "mongodb://localhost:27017/Location"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/CarRental"
 mongo = PyMongo(app)
 
 @stats_bp.route("/stats", methods=["GET"])

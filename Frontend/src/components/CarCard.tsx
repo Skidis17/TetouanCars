@@ -80,7 +80,7 @@ const CarCardComponent = ({ car }: CarCardProps) => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xl font-bold text-gray-900">{car.marque} {car.model}</h3>
-            <span className="font-bold text-carRental-primary">{car.prix_journalier}Dh<span className="text-sm font-normal text-gray-500">/jour</span></span>
+            <span className="font-bold text-carRental-primary">{car.prix_journalier}MAD<span className="text-sm font-normal text-gray-500">/jour</span></span>
           </div>
           
           <p className="text-gray-500 mb-4">{car.type}</p>

@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar, Car, FileText, LogOut, Menu, User, X, ClipboardList, LayoutDashboard, History} from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Outlet } from "react-router-dom";
 
 const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
@@ -30,88 +31,105 @@ const AdminLayout = ({ children }) => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <aside className={`bg-secondary/50 backdrop-blur-sm border-r border-primary/20 w-64 fixed inset-y-0 left-0 z-30 transition-transform transform lg:translate-x-0 ${
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-30 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
-          <div className="px-6 py-4 border-b border-primary/20 flex items-center justify-between">
-            <h2 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
-              TetouanCars
-            </h2>
-            <button 
-              className="lg:hidden text-gray-500"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </button>
+          {/* Logo Section */}
+          <div className="px-6 py-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                TetouanCars
+              </h2>
+              <button 
+                className="lg:hidden text-gray-500 hover:text-gray-700"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
           </div>
           
-          <div className="px-4 py-2 border-b border-primary/20">
-            <div className="flex items-center gap-3 py-3">
-              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="h-5 w-5 text-primary" />
+          {/* User Profile Section */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white font-semibold text-lg">
+                {user.name.charAt(0)}
               </div>
               <div>
-                <p className="font-medium text-gray-200">{user.name}</p>
-                <p className="text-xs text-gray-400">Gestionnaire</p>
+                <p className="font-medium text-gray-900">{user.name}</p>
+                <p className="text-sm text-gray-500">Administrateur</p>
               </div>
             </div>
           </div>
           
-          <nav className="flex-1 px-4 py-4 space-y-1">
+          {/* Navigation Menu */}
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
             {menuItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex items-center px-4 py-2 rounded-md transition-colors ${
+                  `flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
                     isActive
-                      ? 'bg-primary/20 text-primary'
-                      : 'text-gray-400 hover:bg-primary/10 hover:text-gray-200'
+                      ? 'bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-600 font-medium'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`
                 }
               >
-                <span className="mr-3">{item.icon}</span>
+                <span className={`mr-3 ${({ isActive }) => isActive ? 'text-blue-600' : 'text-gray-400'}`}>
+                  {item.icon}
+                </span>
                 {item.name}
               </NavLink>
             ))}
           </nav>
           
-          <div className="p-4 border-t border-primary/20">
+          {/* Logout Button */}
+          <div className="p-4 border-t border-gray-200">
             <Button 
               variant="outline" 
-              className="w-full flex items-center justify-center hover:bg-primary/10"
+              className="w-full flex items-center justify-center space-x-2 py-3 text-gray-600 hover:text-red-600 hover:bg-red-50 border-gray-200 hover:border-red-200 transition-all duration-200"
               onClick={handleLogout}
             >
-              <LogOut className="h-4 w-4 mr-2" />
-              Déconnexion
+              <LogOut className="h-5 w-5" />
+              <span>Déconnexion</span>
             </Button>
           </div>
         </div>
       </aside>
       
-      {/* Main content */}
-      <div className="flex-1 lg:ml-64">
-        <header className="bg-secondary/50 backdrop-blur-sm border-b border-primary/20 h-16 fixed top-0 right-0 left-0 lg:left-64 z-20">
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-72">
+        {/* Top Header */}
+        <header className="bg-white border-b border-gray-200 h-16 fixed top-0 right-0 left-0 lg:left-72 z-20">
           <div className="px-4 h-full flex items-center justify-between">
             <button
-              className="lg:hidden text-gray-400 hover:text-gray-200"
+              className="lg:hidden text-gray-500 hover:text-gray-700"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-6 w-6" />
             </button>
+            <div className="flex items-center space-x-4">
+              <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <User className="h-5 w-5 text-gray-500" />
+              </div>
+            </div>
           </div>
         </header>
         
-        <main className="pt-16 min-h-screen">
+        {/* Page Content */}
+        <main className="pt-16 min-h-screen bg-gray-50">
           {children}
         </main>
       </div>
       
+      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-20 lg:hidden"
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

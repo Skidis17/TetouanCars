@@ -42,7 +42,8 @@ def dashboard_stats():
     available_cars = total_cars - len(reserved_car_ids)
 
     active_client_ids = reservations_collection.distinct("client_id", {
-        "date_fin": {"$gte": now}
+        "date_fin": {"$gte": now.strftime("%Y-%m-%d")},  # Compare as string
+        "statut": {"$in": ["acceptée", "en attente"]}  # IncFude only active reservations
     })
     active_clients = len(active_client_ids)
 

@@ -23,6 +23,7 @@ import CarsList from "@/pages/Manager/CarsList";
 import EditCar from "@/pages/Manager/EditCar";
 import AddCar from "@/pages/Manager/AddCar";
 import ReservationsHistory from "@/pages/Manager/ReservationsHistory";
+import AdminLayout from "./components/AdminLayout";
 
 import AdminLogin from "./pages/Admin/AdminLogin";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
@@ -47,8 +48,6 @@ const App = () => (
           <Route path="/admin/clients" element={<ClientsList />} />
           <Route path="/admin/managers" element={<ManagersList />} />
           <Route path="/admin/voitures" element={<VoitureList />} />
-
-          {/* Routes Public */}
           <Route path="/" element={<Index />} />
           <Route path="/cars" element={<CarListings />} />
           <Route path="/cars/:id" element={<CarDetails />} />
